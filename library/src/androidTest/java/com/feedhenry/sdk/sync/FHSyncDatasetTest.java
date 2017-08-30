@@ -17,7 +17,7 @@ package com.feedhenry.sdk.sync;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.feedhenry.sdk.FH;
+import com.feedhenry.sdk.Sync;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 
@@ -50,7 +50,7 @@ public class FHSyncDatasetTest {
         mockWebServer = new MockWebServer();
         mockWebServer.start(9100);
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        FH.init(getContext(), null);
+        Sync.init(getContext(), null);
     }
 
     @After

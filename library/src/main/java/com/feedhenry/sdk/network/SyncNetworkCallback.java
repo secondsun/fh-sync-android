@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.feedhenry.sdk;
+package com.feedhenry.sdk.network;
 
-import java.util.ArrayList;
-import java.util.List;
 
-public class PushConfig {
+public interface SyncNetworkCallback {
 
-    private String alias;
-    private List<String> categories = new ArrayList<String>();
+    /**
+     * Will be run if the action call is successful
+     *
+     * @param pResponse the response data
+     */
+    void success(SyncNetworkResponse pResponse);
 
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    public List<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(List<String> categories) {
-        this.categories = categories;
-    }
+    /**
+     * Will be run if the action call is failed
+     *
+     * @param pResponse the response data
+     */
+    void fail(SyncNetworkResponse pResponse);
 }

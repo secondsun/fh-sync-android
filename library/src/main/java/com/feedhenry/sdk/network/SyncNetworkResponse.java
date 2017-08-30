@@ -13,23 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.feedhenry.sdk;
+package com.feedhenry.sdk.network;
 
 import org.json.fh.JSONArray;
 import org.json.fh.JSONObject;
 
 /**
- * Represents the response data from FeedHenry when an API call completes.
+ * Represents the response data from Sync
  */
 
-public class FHResponse {
+public class SyncNetworkResponse {
 
     private JSONObject mResults;
     private JSONArray mResultArray;
     private Throwable mError;
     private String mErrorMessage;
 
-    public FHResponse(JSONObject pResults, JSONArray pResultArray, Throwable e, String pError) {
+    public SyncNetworkResponse(){
+
+    }
+
+    public SyncNetworkResponse(JSONObject pResults, JSONArray pResultArray, Throwable e, String pError) {
         mResults = pResults;
         mResultArray = pResultArray;
         mError = e;

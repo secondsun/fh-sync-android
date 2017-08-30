@@ -21,11 +21,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
-import com.feedhenry.sdk.FH;
-import com.feedhenry.sdk.FHActCallback;
-import com.feedhenry.sdk.api.FHActRequest;
+import com.feedhenry.sdk.Sync;
+
 import com.feedhenry.sdk.exceptions.DataSetNotFound;
 import com.feedhenry.sdk.exceptions.FHNotReadyException;
+import com.feedhenry.sdk.network.SyncNetworkCallback;
 import com.feedhenry.sdk.utils.FHLog;
 import java.util.Date;
 import java.util.HashMap;
@@ -278,14 +278,13 @@ public class FHSyncClient {
      *
      * @param pDataId the id of the dataset
      * @param pCallback the callback function
-     * @throws FHNotReadyException if FH is not initialized.
+     * @throws FHNotReadyException if Sync is not initialized.
      * 
      */
-    public void listCollisions(String pDataId, FHActCallback pCallback) throws FHNotReadyException {
+    public void listCollisions(String pDataId, SyncNetworkCallback pCallback) throws FHNotReadyException {
         JSONObject params = new JSONObject();
         params.put("fn", "listCollisions");
-        FHActRequest request = FH.buildActRequest(pDataId, params);
-        request.executeAsync(pCallback);
+        Sync.performRequest(pDataId, params, pCallback);
     }
 
     /**
@@ -294,14 +293,14 @@ public class FHSyncClient {
      * @param pDataId the id of the dataset
      * @param pCollisionHash the hash value of the collision record
      * @param pCallback the callback function
-     * @throws FHNotReadyException thrown if FH is not initialized.
+     * @throws FHNotReadyException thrown if Sync is not initialized.
      */
-    public void removeCollision(String pDataId, String pCollisionHash, FHActCallback pCallback) throws FHNotReadyException {
+    public void removeCollision(String pDataId, String pCollisionHash, SyncNetworkCallback pCallback) throws FHNotReadyException {
         JSONObject params = new JSONObject();
         params.put("fn", "removeCollision");
         params.put("hash", pCollisionHash);
-        FHActRequest request = FH.buildActRequest(pDataId, params);
-        request.executeAsync(pCallback);
+        Sync.performRequest(pDataId, params, pCallback);
+
     }
 
     /**

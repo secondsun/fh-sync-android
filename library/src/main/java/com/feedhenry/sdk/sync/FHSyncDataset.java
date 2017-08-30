@@ -18,10 +18,7 @@ package com.feedhenry.sdk.sync;
 import android.content.Context;
 import android.os.Message;
 import android.util.Log;
-import com.feedhenry.sdk.FH;
-import com.feedhenry.sdk.FHActCallback;
-import com.feedhenry.sdk.FHRemote;
-import com.feedhenry.sdk.FHResponse;
+import com.feedhenry.sdk.Sync;
 import com.feedhenry.sdk.exceptions.FHNotReadyException;
 import com.feedhenry.sdk.utils.FHLog;
 import java.io.BufferedInputStream;
@@ -193,7 +190,7 @@ public class FHSyncDataset {
         mSyncRunning = true;
         mSyncStart = new Date();
         doNotify(null, NotificationMessage.SYNC_STARTED_CODE, null);
-        if (!FH.isOnline()) {
+        if (!Sync.isOnline()) {
             syncCompleteWithCode("offline");
         } else {
             JSONObject syncLoopParams = new JSONObject();
@@ -348,9 +345,9 @@ public class FHSyncDataset {
     private FHRemote makeCloudRequest(JSONObject pSyncLoopParams) throws FHNotReadyException {
         FHRemote request = null;
         if(this.getSyncConfig().useCustomSync()){
-            request = FH.buildActRequest(mDatasetId, pSyncLoopParams);
+            request = Sync.buildActRequest(mDatasetId, pSyncLoopParams);
         } else {
-            request = FH.buildCloudRequest("/mbaas/sync/" + mDatasetId, "POST", null, pSyncLoopParams);
+            request = Sync.buildCloudRequest("/mbaas/sync/" + mDatasetId, "POST", null, pSyncLoopParams);
         }
         return request;
     }
@@ -542,7 +539,7 @@ public class FHSyncDataset {
     }
 
     private FHSyncPendingRecord addPendingObject(String pUid, JSONObject pData, String pAction) {
-        if (!FH.isOnline()) {
+        if (!Sync.isOnline()) {
             doNotify(pUid, NotificationMessage.OFFLINE_UPDATE_CODE, pAction);
         }
         FHSyncPendingRecord pending = new FHSyncPendingRecord();

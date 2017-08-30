@@ -16,11 +16,11 @@
 package com.feedhenry.sdk.exceptions;
 
 /**
- * This exception will be thrown if an FH API method is called before FH.init finishes.
+ * This exception will be thrown if an Sync API method is called before Sync.init finishes.
  */
 public class FHNotReadyException extends Exception {
 
-    private static final String mMessage = "FH SDK is not ready. You need to ensure FH.init is called.";
+    private static final String mMessage = "Sync SDK is not ready. You need to ensure Sync.init is called.";
 
     public FHNotReadyException() {
         super(mMessage);

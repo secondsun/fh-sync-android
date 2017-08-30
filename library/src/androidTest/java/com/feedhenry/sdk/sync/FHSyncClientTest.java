@@ -17,7 +17,7 @@ package com.feedhenry.sdk.sync;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.feedhenry.sdk.FH;
+import com.feedhenry.sdk.Sync;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 
 import org.junit.After;
@@ -39,8 +39,8 @@ public class FHSyncClientTest {
     public void setUp() throws Exception {
         mockWebServer = new MockWebServer();
         mockWebServer.start(9000);
-        FH.init(getContext(), null); // this will load fhconfig.local.properties file
-        FH.setLogLevel(FH.LOG_LEVEL_VERBOSE);
+        Sync.init(getContext(), null); // this will load fhconfig.local.properties file
+        Sync.setLogLevel(Sync.LOG_LEVEL_VERBOSE);
     }
 
     @After
@@ -51,7 +51,7 @@ public class FHSyncClientTest {
         } catch (IOException | InterruptedException | AssertionError ignore) {
 
         }
-        FH.stop();
+        Sync.stop();
     }
 
     @Test

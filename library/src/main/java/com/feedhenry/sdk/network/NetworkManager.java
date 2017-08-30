@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.feedhenry.sdk;
+package com.feedhenry.sdk.network;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -29,7 +29,7 @@ public class NetworkManager {
     private boolean mIsListenerRegistered;
     private NetworkReceiver mReceiver;
 
-    private static final String LOG_TAG = "com.feedhenry.sdk.NetworkManager";
+    private static final String LOG_TAG = "com.feedhenry.sdk.network.NetworkManager";
 
     private static NetworkManager mInstance;
 
