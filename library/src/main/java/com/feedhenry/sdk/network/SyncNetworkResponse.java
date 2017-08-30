@@ -25,19 +25,16 @@ import org.json.fh.JSONObject;
 public class SyncNetworkResponse {
 
     private JSONObject mResults;
-    private JSONArray mResultArray;
     private Throwable mError;
     private String mErrorMessage;
 
-    public SyncNetworkResponse(){
-
-    }
-
-    public SyncNetworkResponse(JSONObject pResults, JSONArray pResultArray, Throwable e, String pError) {
-        mResults = pResults;
-        mResultArray = pResultArray;
+    public SyncNetworkResponse(Throwable e, String pError){
         mError = e;
         mErrorMessage = pError;
+    }
+
+    public SyncNetworkResponse(JSONObject pResults) {
+        mResults = pResults;
     }
 
     /**
@@ -47,15 +44,6 @@ public class SyncNetworkResponse {
      */
     public JSONObject getJson() {
         return mResults;
-    }
-
-    /**
-     * Gets the response data as a JSONArray.
-     *
-     * @return a JSONArray
-     */
-    public JSONArray getArray() {
-        return mResultArray;
     }
 
     /**
@@ -84,8 +72,6 @@ public class SyncNetworkResponse {
     public String getRawResponse() {
         if (mResults != null) {
             return mResults.toString();
-        } else if (mResultArray != null) {
-            return mResultArray.toString();
         } else {
             return mErrorMessage;
         }

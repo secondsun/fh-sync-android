@@ -20,6 +20,8 @@ import android.os.Message;
 import android.util.Log;
 import com.feedhenry.sdk.Sync;
 import com.feedhenry.sdk.exceptions.FHNotReadyException;
+import com.feedhenry.sdk.network.SyncNetworkCallback;
+import com.feedhenry.sdk.network.SyncNetworkResponse;
 import com.feedhenry.sdk.utils.FHLog;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -83,7 +85,7 @@ public class FHSyncDataset {
     private static final String KEY_QUERY_PARAMS = "queryParams";
     private static final String KEY_METADATA = "metaData";
 
-    private static final String LOG_TAG = "com.feedhenry.sdk.sync.FHSyncDataset";
+    private static final String LOG_TAG = "sync.FHSyncDataset";
 
     public FHSyncDataset(
         Context pContext, FHSyncNotificationHandler pHandler, String pDatasetId,
@@ -222,18 +224,17 @@ public class FHSyncDataset {
             FHLog.d(LOG_TAG, "Starting sync loop -global hash = " + mHashvalue + " :: params = " + syncLoopParams);
 
             try {
-                FHRemote actRequest = makeCloudRequest(syncLoopParams);
-                actRequest.executeAsync(
-                    new FHActCallback() {
+                Sync.performRequest(mDatasetId,syncLoopParams,
+                    new SyncNetworkCallback() {
 
                         @Override
-                        public void success(FHResponse pResponse) {
+                        public void success(SyncNetworkResponse pResponse) {
                             JSONObject responseData = pResponse.getJson();
                             syncRequestSuccess(responseData);
                         }
 
                         @Override
-                        public void fail(FHResponse pResponse) {
+                        public void fail(SyncNetworkResponse pResponse) {
                             /*
                             The AJAX call failed to complete successfully, so the state of the current pending updates
                             is unknown. Mark them as "crashed". The next time a syncLoop completes successfully, we
@@ -304,17 +305,16 @@ public class FHSyncDataset {
         FHLog.d(LOG_TAG, "syncRecParams :: " + syncRecsParams);
 
         try {
-            FHRemote request = makeCloudRequest(syncRecsParams);
-            request.executeAsync(
-                new FHActCallback() {
+            Sync.performRequest(mDatasetId, syncRecsParams,
+                    new SyncNetworkCallback() {
 
                     @Override
-                    public void success(FHResponse pResponse) {
+                    public void success(SyncNetworkResponse pResponse) {
                         syncRecordsSuccess(pResponse.getJson());
                     }
 
                     @Override
-                    public void fail(FHResponse pResponse) {
+                    public void fail(SyncNetworkResponse pResponse) {
                         FHLog.e(
                             LOG_TAG, "syncRecords failed: " + pResponse.getRawResponse(),
                             pResponse.getError());
@@ -342,15 +342,6 @@ public class FHSyncDataset {
         syncCompleteWithCode("online");
     }
 
-    private FHRemote makeCloudRequest(JSONObject pSyncLoopParams) throws FHNotReadyException {
-        FHRemote request = null;
-        if(this.getSyncConfig().useCustomSync()){
-            request = Sync.buildActRequest(mDatasetId, pSyncLoopParams);
-        } else {
-            request = Sync.buildCloudRequest("/mbaas/sync/" + mDatasetId, "POST", null, pSyncLoopParams);
-        }
-        return request;
-    }
 
     private void handleDeleted(JSONObject pData) {
         JSONObject deleted = pData.optJSONObject("delete");
@@ -421,14 +412,18 @@ public class FHSyncDataset {
             FHSyncPendingRecord pendingRecord = pendingRecordEntry.getValue();
             String pendingHash = pendingRecordEntry.getKey();
             if (pendingRecord.isInFlight() && pendingRecord.isCrashed()) {
-                Log.d(LOG_TAG, 
-                        String.format("updateCrashedInFlightFromNewData - Found crashed inFlight pending record uid= %s :: hash %s", pendingRecord.getUid(), pendingRecord.getHashValue()));
+                Log.d(LOG_TAG,
+                        String.format("updateCrashedInFlightFromNewData - " +
+                                "Found crashed inFlight pending record uid= %s :: hash %s",
+                                pendingRecord.getUid(), pendingRecord.getHashValue()));
                 if (remoteData != null && remoteData.has("updates") && remoteData.getJSONObject("updates").has("hashes")) {
                     JSONObject hashes = remoteData.getJSONObject("updates").getJSONObject("hashes");
                     JSONObject crashedUpdate = hashes.optJSONObject(pendingHash);
                     if (crashedUpdate != null) {
                         resolvedCrashed.put(crashedUpdate.getString("uid"), crashedUpdate);
-                        Log.d(LOG_TAG, "updateCrashedInFlightFromNewData - Resolving status for crashed inflight pending record " + crashedUpdate.toString());
+                        Log.d(LOG_TAG,
+                                "updateCrashedInFlightFromNewData - Resolving status for crashed inflight pending record "
+                                        + crashedUpdate.toString());
                         String crashedType = crashedUpdate.optString("type");
                         String crashedAction = crashedUpdate.optString("action");
                         

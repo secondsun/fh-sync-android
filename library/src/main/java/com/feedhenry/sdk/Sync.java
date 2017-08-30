@@ -16,12 +16,21 @@
 package com.feedhenry.sdk;
 
 import android.content.Context;
+import android.webkit.URLUtil;
 
 import com.feedhenry.sdk.network.NetworkManager;
 import com.feedhenry.sdk.network.SyncNetworkCallback;
 import com.feedhenry.sdk.network.SyncNetworkResponse;
 
 import org.json.fh.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 /**
@@ -31,6 +40,12 @@ import org.json.fh.JSONObject;
 public class Sync {
 
     private static boolean mReady = false;
+
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
+
+    private static OkHttpClient client = new OkHttpClient();
+
 
     public static final int LOG_LEVEL_VERBOSE = 1;
     public static final int LOG_LEVEL_DEBUG = 2;
@@ -46,10 +61,13 @@ public class Sync {
     private static boolean mInitCalled = false;
 
     private static Context mContext;
-    private final String cloudURL;
+    private static String cloudURL;
 
-    public Sync(String cloudUrl,Context pContext) {
-        this.cloudURL = cloudUrl;
+    private Sync() {
+    }
+
+    public static void init(String cloudUrl,Context pContext) {
+        cloudURL = cloudUrl;
         // Be sure we are store the safety application context
         mContext = pContext.getApplicationContext();
     }
@@ -100,8 +118,22 @@ public class Sync {
         return mLogLevel;
     }
 
-    public static SyncNetworkResponse performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback) {
-        //TODO okhttpd implementation
-        return new SyncNetworkResponse();
+    public static void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback){
+            // TODO change params to json string.
+            RequestBody body = RequestBody.create(JSON, params.toString());
+            Request request = new Request.Builder()
+                    .url(cloudURL + '/' + datasetName)
+                    .post(body)
+                    .build();
+        // TODO check if online/offline
+        // TODO perform async request
+        try {
+            Response response = client.newCall(request).execute();
+            String result = response.body().string();
+            SyncNetworkResponse syncNetworkResponse = new SyncNetworkResponse(new JSONObject(result));
+            pCallback.success(syncNetworkResponse);
+        } catch (IOException e) {
+            pCallback.fail(new SyncNetworkResponse(e, "Request failed"));
+        }
     }
 }
