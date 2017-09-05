@@ -16,22 +16,14 @@
 package com.feedhenry.sdk;
 
 import android.content.Context;
-import android.webkit.URLUtil;
-
+import com.feedhenry.sdk.exceptions.InvalidUrlException;
 import com.feedhenry.sdk.network.NetworkManager;
 import com.feedhenry.sdk.network.SyncNetworkCallback;
 import com.feedhenry.sdk.network.SyncNetworkResponse;
-
+import okhttp3.*;
 import org.json.fh.JSONObject;
 
 import java.io.IOException;
-
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
 
 /**
  * The Sync class provides static methods to initialize the library, create new instances of all the
@@ -41,11 +33,9 @@ public class Sync {
 
     private static boolean mReady = false;
 
-    public static final MediaType JSON
-            = MediaType.parse("application/json; charset=utf-8");
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    private static OkHttpClient client = new OkHttpClient();
-
+    private static OkHttpClient client;
 
     public static final int LOG_LEVEL_VERBOSE = 1;
     public static final int LOG_LEVEL_DEBUG = 2;
@@ -62,18 +52,22 @@ public class Sync {
 
     private static Context mContext;
     private static String cloudURL;
+    private static Headers mHeaders;
 
     private Sync() {
     }
 
-    public static void init(String cloudUrl,Context pContext) {
+    public static void init(String cloudUrl, Context pContext) {
         cloudURL = cloudUrl;
         // Be sure we are store the safety application context
         mContext = pContext.getApplicationContext();
+        NetworkManager.init(mContext);
+        checkNetworkStatus();
+        client = new OkHttpClient.Builder().build();
     }
 
     private static void checkNetworkStatus() {
-        NetworkManager networkManager = NetworkManager.init(mContext);
+        NetworkManager networkManager = NetworkManager.getInstance();
         networkManager.registerNetworkListener();
         networkManager.checkNetworkStatus();
         if (networkManager.isOnline() && !mReady && mInitCalled) {
@@ -118,22 +112,35 @@ public class Sync {
         return mLogLevel;
     }
 
-    public static void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback){
-            // TODO change params to json string.
-            RequestBody body = RequestBody.create(JSON, params.toString());
-            Request request = new Request.Builder()
-                    .url(cloudURL + '/' + datasetName)
-                    .post(body)
-                    .build();
-        // TODO check if online/offline
-        // TODO perform async request
-        try {
-            Response response = client.newCall(request).execute();
-            String result = response.body().string();
-            SyncNetworkResponse syncNetworkResponse = new SyncNetworkResponse(new JSONObject(result));
-            pCallback.success(syncNetworkResponse);
-        } catch (IOException e) {
-            pCallback.fail(new SyncNetworkResponse(e, "Request failed"));
+    /**
+     * Configures HTTP headers that will be used to perform the cloud requests.
+     *
+     * @param requestHeaders list of HTTP headers
+     */
+    public static void setHeaders(Headers requestHeaders) {
+        mHeaders = requestHeaders;
+    }
+
+    public static void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback) {
+        // TODO change params to json string.
+        RequestBody body = RequestBody.create(JSON, params.toString());
+        HttpUrl url = HttpUrl.parse(cloudURL);
+        if (url != null) {
+            url = url.newBuilder().addPathSegment(datasetName).build();
+            Request request = new Request.Builder().url(url).headers(mHeaders).post(body).build();
+
+            // TODO check if online/offline
+            // TODO perform async request
+            try {
+                Response response = client.newCall(request).execute();
+                String result = response.body().string();
+                SyncNetworkResponse syncNetworkResponse = new SyncNetworkResponse(new JSONObject(result));
+                pCallback.success(syncNetworkResponse);
+            } catch (IOException e) {
+                pCallback.fail(new SyncNetworkResponse(e, "Request failed"));
+            }
+        } else {
+            pCallback.fail(new SyncNetworkResponse(new InvalidUrlException(cloudURL), "Invalid cloud app URL"));
         }
     }
 }
