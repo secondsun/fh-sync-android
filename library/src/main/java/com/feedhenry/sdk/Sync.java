@@ -15,15 +15,19 @@
  */
 package com.feedhenry.sdk;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
-import com.feedhenry.sdk.exceptions.InvalidUrlException;
-import com.feedhenry.sdk.network.NetworkManager;
-import com.feedhenry.sdk.network.SyncNetworkCallback;
-import com.feedhenry.sdk.network.SyncNetworkResponse;
-import okhttp3.*;
-import org.json.fh.JSONObject;
-
-import java.io.IOException;
+import android.os.Bundle;
+import android.util.Log;
+import com.feedhenry.sdk.android.FileStorageImpl;
+import com.feedhenry.sdk.android.NetworkClientImpl;
+import com.feedhenry.sdk.android.SyncableActivity;
+import com.feedhenry.sdk.network.NetworkClient;
+import com.feedhenry.sdk.sync.FHSyncClient;
+import com.feedhenry.sdk.sync.FHSyncConfig;
+import okhttp3.Headers;
+import okhttp3.MediaType;
 
 /**
  * The Sync class provides static methods to initialize the library, create new instances of all the
@@ -31,11 +35,9 @@ import java.io.IOException;
  */
 public class Sync {
 
-    private static boolean mReady = false;
+    private static final String TAG = "FHSync";
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
-    private static OkHttpClient client;
 
     public static final int LOG_LEVEL_VERBOSE = 1;
     public static final int LOG_LEVEL_DEBUG = 2;
@@ -46,42 +48,72 @@ public class Sync {
 
     private static int mLogLevel = LOG_LEVEL_ERROR;
 
-    public static final String VERSION = "2.1.0"; // DO NOT CHANGE, the ant build task will automatically update this value. Update it in VERSION.txt
-
-    private static boolean mInitCalled = false;
-
-    private static Context mContext;
     private static String cloudURL;
     private static Headers mHeaders;
 
     private Sync() {
     }
 
-    public static void init(String cloudUrl, Context pContext) {
+    /**
+     * Sync initialization.
+     * @param application application object
+     * @param config sync config
+     * @param cloudUrl url of the cloud app endpoint
+     */
+    public static void init(final Application application, final FHSyncConfig config, final String cloudUrl) {
         cloudURL = cloudUrl;
-        // Be sure we are store the safety application context
-        mContext = pContext.getApplicationContext();
-        NetworkManager.init(mContext);
-        checkNetworkStatus();
-        client = new OkHttpClient.Builder().build();
+        final NetworkClient networkClient = new NetworkClientImpl(application.getApplicationContext(),cloudUrl);
+        networkClient.registerNetworkListener();
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+                if (activity instanceof SyncableActivity) {
+                    Log.d(TAG, "sync init for " + activity.getClass().getName());
+                    Context context = application.getApplicationContext();
+                    FHSyncClient.getInstance().init(config, new FileStorageImpl(context),networkClient);
+                    FHSyncClient.getInstance().setListener(((SyncableActivity) activity).onBindSyncListener());
+
+                }
+            }
+
+            @Override
+            public void onActivityStarted(Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityResumed(Activity activity) {
+                if (activity instanceof SyncableActivity) {
+                    Log.d(TAG, "sync resumed for " + activity.getClass().getName());
+                    FHSyncClient.getInstance().resumeSync(((SyncableActivity) activity).onBindSyncListener());
+                }
+            }
+
+            @Override
+            public void onActivityPaused(Activity activity) {
+                if (activity instanceof SyncableActivity) {
+                    Log.d(TAG, "sync paused for " + activity.getClass().getName());
+                    FHSyncClient.getInstance().pauseSync();
+                }
+            }
+
+            @Override
+            public void onActivityStopped(Activity activity) {
+
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+            }
+
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+
+            }
+        });
     }
 
-    private static void checkNetworkStatus() {
-        NetworkManager networkManager = NetworkManager.getInstance();
-        networkManager.registerNetworkListener();
-        networkManager.checkNetworkStatus();
-        if (networkManager.isOnline() && !mReady && mInitCalled) {
-            // TODO Monitor status for service
-        }
-    }
-
-    public static boolean isOnline() {
-        return NetworkManager.getInstance().isOnline();
-    }
-
-    public static void stop() {
-        NetworkManager.getInstance().unregisterNetworkListener();
-    }
 
     /**
      * Sets the log level for the library.
@@ -112,35 +144,7 @@ public class Sync {
         return mLogLevel;
     }
 
-    /**
-     * Configures HTTP headers that will be used to perform the cloud requests.
-     *
-     * @param requestHeaders list of HTTP headers
-     */
-    public static void setHeaders(Headers requestHeaders) {
-        mHeaders = requestHeaders;
-    }
 
-    public static void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback) {
-        // TODO change params to json string.
-        RequestBody body = RequestBody.create(JSON, params.toString());
-        HttpUrl url = HttpUrl.parse(cloudURL);
-        if (url != null) {
-            url = url.newBuilder().addPathSegment(datasetName).build();
-            Request request = new Request.Builder().url(url).headers(mHeaders).post(body).build();
 
-            // TODO check if online/offline
-            // TODO perform async request
-            try {
-                Response response = client.newCall(request).execute();
-                String result = response.body().string();
-                SyncNetworkResponse syncNetworkResponse = new SyncNetworkResponse(new JSONObject(result));
-                pCallback.success(syncNetworkResponse);
-            } catch (IOException e) {
-                pCallback.fail(new SyncNetworkResponse(e, "Request failed"));
-            }
-        } else {
-            pCallback.fail(new SyncNetworkResponse(new InvalidUrlException(cloudURL), "Invalid cloud app URL"));
-        }
-    }
+
 }

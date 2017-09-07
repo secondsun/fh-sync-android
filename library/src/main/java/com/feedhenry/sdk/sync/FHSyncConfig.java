@@ -1,12 +1,12 @@
 /**
  * Copyright Red Hat, Inc, and individual contributors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,6 +58,7 @@ public class FHSyncConfig {
      *
      * @param pFrequencySeconds the new sync interval
      */
+    @Deprecated
     public void setSyncFrequency(int pFrequencySeconds) {
         mSyncFrequencySeconds = pFrequencySeconds;
     }
@@ -85,6 +86,7 @@ public class FHSyncConfig {
      *
      * @param pNotifySyncStarted whether to notify on sync start
      */
+    @Deprecated
     public void setNotifySyncStarted(boolean pNotifySyncStarted) {
         this.mNotifySyncStarted = pNotifySyncStarted;
     }
@@ -103,6 +105,7 @@ public class FHSyncConfig {
      *
      * @param pNotifySyncComplete whether to notify on sync complete
      */
+    @Deprecated
     public void setNotifySyncComplete(boolean pNotifySyncComplete) {
         this.mNotifySyncComplete = pNotifySyncComplete;
     }
@@ -121,6 +124,7 @@ public class FHSyncConfig {
      *
      * @param pNotifySyncCollsion whether to notify on sync collision
      */
+    @Deprecated
     public void setNotifySyncCollisions(boolean pNotifySyncCollsion) {
         this.mNotifySyncCollisions = pNotifySyncCollsion;
     }
@@ -139,6 +143,7 @@ public class FHSyncConfig {
      *
      * @param pNotifyOfflineUpdate whether to notify on offline update
      */
+    @Deprecated
     public void setNotifyOfflineUpdate(boolean pNotifyOfflineUpdate) {
         this.mNotifyOfflineUpdate = pNotifyOfflineUpdate;
     }
@@ -157,6 +162,7 @@ public class FHSyncConfig {
      *
      * @param pNotifyUpdateFailed whether to notify on update failed
      */
+    @Deprecated
     public void setNotifyUpdateFailed(boolean pNotifyUpdateFailed) {
         this.mNotifyRemoteUpdateFailed = pNotifyUpdateFailed;
     }
@@ -175,6 +181,7 @@ public class FHSyncConfig {
      *
      * @param pNotifyRemoteUpdateApplied whether to notify on remote updates applied
      */
+    @Deprecated
     public void setNotifyRemoteUpdateApplied(boolean pNotifyRemoteUpdateApplied) {
         this.mNotifyRemoteUpdateApplied = pNotifyRemoteUpdateApplied;
     }
@@ -193,6 +200,7 @@ public class FHSyncConfig {
      *
      * @param pNotifyLocalUpdateApplied whether to notify on local updates applied
      */
+    @Deprecated
     public void setNotifyLocalUpdateApplied(boolean pNotifyLocalUpdateApplied) {
         this.mNotifyLocalUpdateApplied = pNotifyLocalUpdateApplied;
     }
@@ -211,6 +219,7 @@ public class FHSyncConfig {
      *
      * @param pNotifyDeltaReceived whether to notify on delta received
      */
+    @Deprecated
     public void setNotifyDeltaReceived(boolean pNotifyDeltaReceived) {
         this.mNotifyDeltaReceived = pNotifyDeltaReceived;
     }
@@ -229,6 +238,7 @@ public class FHSyncConfig {
      *
      * @param pNotifySyncFailed whether to notify on sync failed
      */
+    @Deprecated
     public void setNotifySyncFailed(boolean pNotifySyncFailed) {
         this.mNotifySyncFailed = pNotifySyncFailed;
     }
@@ -238,6 +248,7 @@ public class FHSyncConfig {
      *
      * @param pNotifyClientStorageFailed whether to notify on client storage failed
      */
+    @Deprecated
     public void setNotifyClientStorageFailed(boolean pNotifyClientStorageFailed) {
         this.mNotifyClientStorageFailed = pNotifyClientStorageFailed;
     }
@@ -265,6 +276,7 @@ public class FHSyncConfig {
      *
      * @param mAutoSyncLocalUpdates whether local changes should automatically sync
      */
+    @Deprecated
     public void setAutoSyncLocalUpdates(boolean mAutoSyncLocalUpdates) {
         this.mAutoSyncLocalUpdates = mAutoSyncLocalUpdates;
     }
@@ -285,6 +297,7 @@ public class FHSyncConfig {
      *
      * @param mCrashCountWait the crash limit
      */
+    @Deprecated
     public void setCrashCountWait(int mCrashCountWait) {
         this.mCrashCountWait = mCrashCountWait;
     }
@@ -304,21 +317,38 @@ public class FHSyncConfig {
      *
      * @param mResendCrashedUpdates true or false.
      */
+    @Deprecated
     public void setResendCrashedUpdates(boolean mResendCrashedUpdates) {
         this.mResendCrashedUpdates = mResendCrashedUpdates;
     }
 
     /**
      * Set if legacy mode is used
+     *
      * @param mUseCustomSync
      */
-    public void setUseCustomSync(boolean mUseCustomSync) { this.mUseCustomSync = mUseCustomSync; }
+    @Deprecated
+    public void setUseCustomSync(boolean mUseCustomSync) {
+        this.mUseCustomSync = mUseCustomSync;
+    }
 
     /**
      * Check if legacy mode is enabled
+     *
      * @return
      */
-    public boolean useCustomSync() { return this.mUseCustomSync; };
+    public boolean useCustomSync() {
+        return this.mUseCustomSync;
+    }
+
+    ;
+
+    /**
+     * Deprecated constructor, use {@link Builder} instead.
+     */
+    public FHSyncConfig() {
+
+    }
 
     /**
      * Gets a JSON representation of the configuration object.
@@ -348,8 +378,10 @@ public class FHSyncConfig {
      * Creates a new configuration object from JSON.
      *
      * @param pObj the sync config JSON
+     *
      * @return the new sync config object
      */
+    @Deprecated
     public static FHSyncConfig fromJSON(JSONObject pObj) {
         FHSyncConfig config = new FHSyncConfig();
         config.setSyncFrequency(pObj.optInt(KEY_SYNC_FREQUENCY));
@@ -369,8 +401,220 @@ public class FHSyncConfig {
         return config;
     }
 
+    @Deprecated
     public FHSyncConfig clone() {
         JSONObject json = this.getJSON();
         return FHSyncConfig.fromJSON(json);
     }
+
+    /**
+     * Class for creating FHSyncConfig.
+     */
+    public static class Builder {
+
+        private final FHSyncConfig mInstance = new FHSyncConfig();
+
+        /**
+         * Sets the sync interval in seconds.
+         *
+         * @param pSyncFrequencySeconds the new sync interval
+         */
+        public Builder syncFrequencySeconds(int pSyncFrequencySeconds) {
+            mInstance.mSyncFrequencySeconds = pSyncFrequencySeconds;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should automatically update on local changes.
+         *
+         * @param pAutoSyncLocalUpdates whether local changes should automatically sync
+         */
+        public Builder autoSyncLocalUpdates(boolean pAutoSyncLocalUpdates) {
+            mInstance.mAutoSyncLocalUpdates = pAutoSyncLocalUpdates;
+            return this;
+        }
+
+        /**
+         * Sets the maximum crash count number.
+         * Changes may fail to be applied (crash) due to various reasons (e.g., network issues).
+         * If the crash count reaches this limit, the changes will be either re-submitted or abandoned.
+         *
+         * @param pCrashCountWait the crash limit
+         */
+        public Builder crashCountWait(int pCrashCountWait) {
+            mInstance.mCrashCountWait = pCrashCountWait;
+            return this;
+        }
+
+        /**
+         * Sets whether changes should be re-submitted once the crash limit is reached.
+         * If false, changes will be discarded.
+         *
+         * @param pResendCrashedUpdates true or false.
+         */
+        public Builder resendCrashedUpdates(boolean pResendCrashedUpdates) {
+            mInstance.mResendCrashedUpdates = pResendCrashedUpdates;
+            return this;
+        }
+
+        /**
+         * Set if legacy mode is used
+         *
+         * @param pUseCustomSync
+         */
+        public Builder useCustomSync(boolean pUseCustomSync) {
+            mInstance.mUseCustomSync = pUseCustomSync;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a sync start event.
+         *
+         * @param pNotifySyncStarted whether to notify on sync start
+         */
+        public Builder notifySyncStarted(boolean pNotifySyncStarted) {
+            mInstance.mNotifySyncStarted = pNotifySyncStarted;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a sync complete event.
+         *
+         * @param pNotifySyncComplete whether to notify on sync complete
+         */
+        public Builder notifySyncComplete(boolean pNotifySyncComplete) {
+            mInstance.mNotifySyncComplete = pNotifySyncComplete;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a sync collision event.
+         *
+         * @param pNotifySyncCollsion whether to notify on sync collision
+         */
+        public Builder notifySyncCollisions(boolean pNotifySyncCollsion) {
+            mInstance.mNotifySyncCollisions = pNotifySyncCollsion;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on an offline update event.
+         *
+         * @param pNotifyOfflineUpdate whether to notify on offline update
+         */
+        public Builder notifyOfflineUpdate(boolean pNotifyOfflineUpdate) {
+            mInstance.mNotifyOfflineUpdate = pNotifyOfflineUpdate;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on an update failed event.
+         *
+         * @param pNotifyUpdateFailed whether to notify on update failed
+         */
+        public Builder notifyUpdateFailed(boolean pNotifyUpdateFailed) {
+            mInstance.mNotifyRemoteUpdateFailed = pNotifyUpdateFailed;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a remote updates applied event.
+         *
+         * @param pNotifyRemoteUpdateApplied whether to notify on remote updates applied
+         */
+        public Builder notifyRemoteUpdateApplied(boolean pNotifyRemoteUpdateApplied) {
+            mInstance.mNotifyRemoteUpdateApplied = pNotifyRemoteUpdateApplied;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a local updates applied event.
+         *
+         * @param pNotifyLocalUpdateApplied whether to notify on local updates applied
+         */
+        public Builder notifyLocalUpdateApplied(boolean pNotifyLocalUpdateApplied) {
+            mInstance.mNotifyLocalUpdateApplied = pNotifyLocalUpdateApplied;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a delta received event.
+         *
+         * @param pNotifyDeltaReceived whether to notify on delta received
+         */
+        public Builder notifyDeltaReceived(boolean pNotifyDeltaReceived) {
+            mInstance.mNotifyDeltaReceived = pNotifyDeltaReceived;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a sync failed event.
+         *
+         * @param pNotifySyncFailed whether to notify on sync failed
+         */
+        public Builder notifySyncFailed(boolean pNotifySyncFailed) {
+            mInstance.mNotifySyncFailed = pNotifySyncFailed;
+            return this;
+        }
+
+        /**
+         * Sets if the sync client should notify on a client storage failed event.
+         *
+         * @param pNotifyClientStorageFailed whether to notify on client storage failed
+         */
+        public Builder notifyClientStorageFailed(boolean pNotifyClientStorageFailed) {
+            mInstance.mNotifyClientStorageFailed = pNotifyClientStorageFailed;
+            return this;
+        }
+
+        /**
+         * Enables all notifications for sync client.
+         */
+        public Builder notifyEnableAll() {
+            mInstance.mNotifyClientStorageFailed = true;
+            mInstance.mNotifyDeltaReceived = true;
+            mInstance.mNotifyOfflineUpdate = true;
+            mInstance.mNotifySyncCollisions = true;
+            mInstance.mNotifySyncComplete = true;
+            mInstance.mNotifySyncStarted = true;
+            mInstance.mNotifyRemoteUpdateApplied = true;
+            mInstance.mNotifyLocalUpdateApplied = true;
+            mInstance.mNotifyRemoteUpdateFailed = true;
+            mInstance.mNotifySyncFailed = true;
+            return this;
+        }
+
+        /**
+         * Sets builder from JSON config.
+         *
+         * @param pObj the sync config JSON
+         */
+        public Builder fromJSON(JSONObject pObj) {
+            mInstance.mSyncFrequencySeconds = pObj.optInt(KEY_SYNC_FREQUENCY);
+            mInstance.mAutoSyncLocalUpdates = pObj.optBoolean(KEY_AUTO_SYNC_UPDATES);
+            mInstance.mNotifyClientStorageFailed = pObj.optBoolean(KEY_NOTIFY_CLIENT_STORAGE_FAILED);
+            mInstance.mNotifyDeltaReceived = pObj.optBoolean(KEY_NOTIFY_DELTA_RECEIVED);
+            mInstance.mNotifyOfflineUpdate = pObj.optBoolean(KEY_NOTIFY_OFFLINE_UPDATED);
+            mInstance.mNotifySyncCollisions = pObj.optBoolean(KEY_NOTIFY_SYNC_COLLISION);
+            mInstance.mNotifySyncComplete = pObj.optBoolean(KEY_NOTIFY_SYNC_COMPLETED);
+            mInstance.mNotifySyncStarted = pObj.optBoolean(KEY_NOTIFY_SYNC_STARTED);
+            mInstance.mNotifyRemoteUpdateApplied = pObj.optBoolean(KEY_NOTIFY_REMOTE_UPDATED_APPLIED);
+            mInstance.mNotifyLocalUpdateApplied = pObj.optBoolean(KEY_NOTIFY_LOCAL_UPDATE_APPLIED);
+            mInstance.mNotifyRemoteUpdateFailed = pObj.optBoolean(KEY_NOTIFY_REMOTE_UPDATED_FAILED);
+            mInstance.mNotifySyncFailed = pObj.optBoolean(KEY_NOTIFY_SYNC_FAILED);
+            mInstance.mCrashCountWait = pObj.optInt(KEY_CRASHCOUNT, 10);
+            mInstance.mResendCrashedUpdates = pObj.optBoolean(KEY_RESEND_CRASH);
+            return this;
+        }
+
+        /**
+         * Creates FHSyncConfig
+         *
+         * @return created config object
+         */
+        public FHSyncConfig build() {
+            return mInstance;
+        }
+    }
+
 }
