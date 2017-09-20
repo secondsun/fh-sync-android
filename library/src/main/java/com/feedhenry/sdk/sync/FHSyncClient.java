@@ -16,20 +16,16 @@
 package com.feedhenry.sdk.sync;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import com.feedhenry.sdk.Sync;
-import com.feedhenry.sdk.android.FileStorageImpl;
-import com.feedhenry.sdk.android.NetworkClientImpl;
 import com.feedhenry.sdk.exceptions.DataSetNotFound;
 import com.feedhenry.sdk.exceptions.FHNotReadyException;
 import com.feedhenry.sdk.network.NetworkClient;
 import com.feedhenry.sdk.network.SyncNetworkCallback;
-import com.feedhenry.sdk.storage.FileStorage;
+import com.feedhenry.sdk.storage.Storage;
 import com.feedhenry.sdk.utils.FHLog;
 import org.json.fh.JSONObject;
 
@@ -51,10 +47,9 @@ public class FHSyncClient {
     protected static final String LOG_TAG = "FHSyncClient";
 
     private final Handler mHandler;
-    private FileStorage fileStorage;
+    private Storage storage;
     private NetworkClient networkClient;
 
-    //private Context mContext;
     private Map<String, FHSyncDataset> mDataSets = new HashMap<String, FHSyncDataset>();
     private FHSyncConfig mConfig = new FHSyncConfig();
     private FHSyncListener mSyncListener = null;
@@ -90,40 +85,13 @@ public class FHSyncClient {
      * Initializes the sync client. Should be called every time an app/activity
      * starts.
      *
-     * @param pContext  The app context
-     * @param pConfig   The sync configuration
-     * @param pListener The sync listener
-     *
-     * @deprecated Don't use this anymore it's leaking Context.
-     */
-    @Deprecated
-    public void init(Context pContext, FHSyncConfig pConfig, FHSyncListener pListener) {
-        fileStorage = new FileStorageImpl(pContext);
-        mConfig = pConfig;
-        mSyncListener = pListener;
-        networkClient = new NetworkClientImpl(pContext);
-        initHandlers();
-        mInitialised = true;
-        if (null == mMonitorTask) {
-            HandlerThread thread = new HandlerThread("monitor task");
-            thread.start();
-            Handler handler = new Handler(thread.getLooper());
-            mMonitorTask = new MonitorTask();
-            handler.post(mMonitorTask);
-        }
-    }
-
-    /**
-     * Initializes the sync client. Should be called every time an app/activity
-     * starts.
-     *
      * @param config        The sync configuration
-     * @param fileStorage   Filesystem access object for storing the datasets
+     * @param storage   Filesystem access object for storing the datasets
      * @param networkClient Network access object
      */
-    public void init(FHSyncConfig config, @NonNull FileStorage fileStorage, @NonNull NetworkClient networkClient) {
+    public void init(FHSyncConfig config, @NonNull Storage storage, @NonNull NetworkClient networkClient) {
         mConfig = config;
-        this.fileStorage = fileStorage;
+        this.storage = storage;
         this.networkClient = networkClient;
         initHandlers();
         mInitialised = true;
@@ -198,7 +166,7 @@ public class FHSyncClient {
         if (null != dataset) {
             dataset.setNotificationHandler(mNotificationHandler);
         } else {
-            dataset = new FHSyncDataset(fileStorage, mNotificationHandler, pDataId, syncConfig, pQueryParams, pMetaData);
+            dataset = new FHSyncDataset(storage, networkClient, mNotificationHandler, pDataId, syncConfig, pQueryParams, pMetaData);
             mDataSets.put(pDataId, dataset);
             dataset.setSyncRunning(false);
             dataset.setInitialised(true);
@@ -207,7 +175,7 @@ public class FHSyncClient {
         dataset.setSyncConfig(syncConfig);
         dataset.setSyncPending(true);
 
-        dataset.writeToFile();
+        dataset.writeToStorage();
     }
 
     /**

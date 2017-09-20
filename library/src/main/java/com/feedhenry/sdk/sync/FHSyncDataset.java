@@ -20,20 +20,23 @@ import android.util.Log;
 import com.feedhenry.sdk.network.NetworkClient;
 import com.feedhenry.sdk.network.SyncNetworkCallback;
 import com.feedhenry.sdk.network.SyncNetworkResponse;
-import com.feedhenry.sdk.storage.FileStorage;
+import com.feedhenry.sdk.storage.Storage;
 import com.feedhenry.sdk.utils.FHLog;
 import org.json.fh.JSONArray;
 import org.json.fh.JSONException;
 import org.json.fh.JSONObject;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 class FHSyncDataset {
 
-    private final FileStorage fileStorage;
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private final Storage storage;
     private final NetworkClient networkClient;
     private boolean mSyncRunning;
     private boolean mInitialised;
@@ -57,8 +60,6 @@ class FHSyncDataset {
     //    private Context mContext;
     private FHSyncNotificationHandler mNotificationHandler;
 
-    private static final String STORAGE_FILE_EXT = ".sync.json";
-
     private static final String KEY_DATE_SET_ID = "dataSetId";
     private static final String KEY_SYNC_LOOP_START = "syncLoopStart";
     private static final String KEY_SYNC_LOOP_END = "syncLoopEnd";
@@ -72,15 +73,15 @@ class FHSyncDataset {
 
     private static final String LOG_TAG = "FHSyncDataset";
 
-    FHSyncDataset(FileStorage pFileStorage, NetworkClient networkClient, FHSyncNotificationHandler pHandler, String pDatasetId, FHSyncConfig pConfig, JSONObject pQueryParams, JSONObject pMetaData) {
-        fileStorage = pFileStorage;
+    FHSyncDataset(Storage pStorage, NetworkClient networkClient, FHSyncNotificationHandler pHandler, String pDatasetId, FHSyncConfig pConfig, JSONObject pQueryParams, JSONObject pMetaData) {
+        storage = pStorage;
         this.networkClient = networkClient;
         mNotificationHandler = pHandler;
         mDatasetId = pDatasetId;
         mSyncConfig = pConfig;
         mQueryParams = pQueryParams;
         mCustomMetaData = pMetaData;
-        readFromFile();
+        readFromStorage();
     }
 
     public JSONObject getJSON() {
@@ -489,7 +490,7 @@ class FHSyncDataset {
     public void syncCompleteWithCode(String pCode) {
         mSyncRunning = false;
         mSyncEnd = new Date();
-        writeToFile();
+        writeToStorage();
         doNotify(mHashvalue, NotificationMessage.SYNC_COMPLETE_CODE, pCode);
     }
 
@@ -526,7 +527,7 @@ class FHSyncDataset {
         if (mSyncConfig.isAutoSyncLocalUpdates()) {
             mSyncPending = true;
         }
-        writeToFile();
+        writeToStorage();
         doNotify(pPendingObj.getUid(), NotificationMessage.LOCAL_UPDATE_APPLIED_CODE, pPendingObj.getAction());
     }
 
@@ -667,37 +668,30 @@ class FHSyncDataset {
         }
     }
 
-    private void readFromFile() {
-        String filePath = mDatasetId + STORAGE_FILE_EXT;
+    private void readFromStorage() {
         try {
-            FileInputStream fis = fileStorage.openFileInput(filePath);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            writeStream(fis, bos);
-            String content = bos.toString("UTF-8");
+            String content = new String(storage.getContent(mDatasetId), UTF_8);
             JSONObject json = new JSONObject(content);
             fromJSON(json);
             doNotify(null, NotificationMessage.LOCAL_UPDATE_APPLIED_CODE, "load");
-        } catch (FileNotFoundException ex) {
-            FHLog.w(LOG_TAG, "File not found for reading: " + filePath);
+        } catch (FileNotFoundException e) {
+            FHLog.w(LOG_TAG, "File not found for reading, datasetId: " + mDatasetId);
         } catch (IOException e) {
-            FHLog.e(LOG_TAG, "Error reading file : " + filePath, e);
+            FHLog.e(LOG_TAG, "Error reading from storage, datasetId: " + mDatasetId, e);
         } catch (JSONException je) {
-            FHLog.e(LOG_TAG, "Failed to parse JSON file : " + filePath, je);
+            FHLog.e(LOG_TAG, "Failed to parse JSON file , datasetId: " + mDatasetId, je);
         }
     }
 
-    public synchronized void writeToFile() {
-        String filePath = mDatasetId + STORAGE_FILE_EXT;
+    synchronized void writeToStorage() {
         try {
-            FileOutputStream fos = fileStorage.openFileOutput(filePath);
             String content = getJSON().toString();
-            ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes());
-            writeStream(bis, fos);
+            storage.putContent(mDatasetId, content.getBytes(UTF_8));
         } catch (FileNotFoundException ex) {
-            FHLog.e(LOG_TAG, "File not found for writing: " + filePath, ex);
+            FHLog.e(LOG_TAG, "File not found for writing, datasetId: " + mDatasetId, ex);
             doNotify(null, NotificationMessage.CLIENT_STORAGE_FAILED_CODE, ex.getMessage());
         } catch (IOException e) {
-            FHLog.e(LOG_TAG, "Error writing file: " + filePath, e);
+            FHLog.e(LOG_TAG, "Error writing to storage, datasetId: " + mDatasetId, e);
             doNotify(null, NotificationMessage.CLIENT_STORAGE_FAILED_CODE, e.getMessage());
         }
     }
@@ -761,20 +755,6 @@ class FHSyncDataset {
             NotificationMessage notification = NotificationMessage.getMessage(mDatasetId, pUID, pCode, pMessage);
             Message message = mNotificationHandler.obtainMessage(pCode, notification);
             mNotificationHandler.sendMessage(message);
-        }
-    }
-
-    private static void writeStream(InputStream pInput, OutputStream pOutput) throws IOException {
-        if (pInput != null && pOutput != null) {
-            BufferedInputStream bis = new BufferedInputStream(pInput);
-            BufferedOutputStream bos = new BufferedOutputStream(pOutput);
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = bis.read(buffer)) != -1) {
-                bos.write(buffer, 0, bytesRead);
-            }
-            bos.close();
-            bis.close();
         }
     }
 

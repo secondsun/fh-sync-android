@@ -24,14 +24,14 @@ import com.feedhenry.sdk.utils.ClientIdGenerator;
 /**
  * Generates unique client id on Android.
  */
-public class ClientIdGeneraorImpl implements ClientIdGenerator {
+public class ClientIdGeneratorImpl implements ClientIdGenerator {
 
     private static final String FH_SYNC_PREFERENCES = "fh-sync";
     private static final String KEY_CLIENT_ID = "clientId";
 
     private final Context context;
 
-    public ClientIdGeneraorImpl(Context ctx) {
+    public ClientIdGeneratorImpl(Context ctx) {
         context = ctx;
     }
 

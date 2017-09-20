@@ -374,6 +374,7 @@ public class FHSyncConfig {
         return ret;
     }
 
+
     /**
      * Creates a new configuration object from JSON.
      *

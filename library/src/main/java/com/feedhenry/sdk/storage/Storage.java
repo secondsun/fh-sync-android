@@ -17,30 +17,28 @@ package com.feedhenry.sdk.storage;
 
 import android.support.annotation.NonNull;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
- * Interface for classes that should handle opening files.
+ * Interface for classes that should be used for retrieving and saving data for datasets.
  */
-public interface FileStorage {
+public interface Storage {
 
     /**
      * Opens file for reading
      *
-     * @param filePath relative path to file
+     * @param contentId content identifier
      *
      * @return input stream
      */
-    FileInputStream openFileInput(@NonNull String filePath) throws FileNotFoundException;
+    byte[] getContent(@NonNull String contentId) throws IOException;
 
     /**
      * Opens file for writing
      *
-     * @param filePath relative path to file
+     * @param contentId relative path to file
      *
      * @return output stream
      */
-    FileOutputStream openFileOutput(@NonNull String filePath) throws FileNotFoundException;
+    void putContent(@NonNull String contentId, @NonNull byte[] content) throws IOException;
 }

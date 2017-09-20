@@ -20,7 +20,7 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-import com.feedhenry.sdk.android.FileStorageImpl;
+import com.feedhenry.sdk.android.FileStorage;
 import com.feedhenry.sdk.android.NetworkClientImpl;
 import com.feedhenry.sdk.android.SyncableActivity;
 import com.feedhenry.sdk.network.NetworkClient;
@@ -70,7 +70,7 @@ public class Sync {
                 if (activity instanceof SyncableActivity) {
                     Log.d(TAG, "sync init for " + activity.getClass().getName());
                     Context context = application.getApplicationContext();
-                    FHSyncClient.getInstance().init(config, new FileStorageImpl(context),networkClient);
+                    FHSyncClient.getInstance().init(config, new FileStorage(context),networkClient);
                     FHSyncClient.getInstance().setListener(((SyncableActivity) activity).onBindSyncListener());
 
                 }
