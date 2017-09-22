@@ -152,6 +152,9 @@ public class FHSyncService extends IntentService {
 
     }
 
+    /**
+     * Class for holding dataset config.
+     */
     private class ManagedDatasetConfig {
 
         FHSyncConfig syncConfig;
@@ -165,6 +168,11 @@ public class FHSyncService extends IntentService {
         }
     }
 
+    /**
+     * Returns singleton of {@link UtilFactory}. You can override it in your own descendant service to provide your own implementations.
+     *
+     * @return factory singleton
+     */
     public UtilFactory getUtilFactory() {
         if (utilFactory == null) {
             utilFactory = new AndroidUtilFactory(this);
@@ -200,6 +208,11 @@ public class FHSyncService extends IntentService {
         log.d(SERVICE_NAME, "Sync client initialized.");
     }
 
+    /**
+     * Loads and parses JSON with sync client and dataset configs from storage.
+     *
+     * @throws IOException
+     */
     private void loadSyncConfig() throws IOException {
         byte[] configBody = storage.getContent(GLOBAL_CONFIG);
         try {
@@ -230,6 +243,11 @@ public class FHSyncService extends IntentService {
         }
     }
 
+    /**
+     * Creates JSON from sync and dataset configs and saves it in storage.
+     *
+     * @throws IOException
+     */
     private void saveSyncConfig() throws IOException {
         try {
             JSONObject configJSON = new JSONObject();
@@ -270,6 +288,10 @@ public class FHSyncService extends IntentService {
 
     }
 
+    /**
+     * Sets sync config.
+     * @param config config
+     */
     public void setConfig(FHSyncConfig config) {
         syncConfig = config;
         log.d(SERVICE_NAME, "Sync config set");
@@ -280,6 +302,10 @@ public class FHSyncService extends IntentService {
         }
     }
 
+    /**
+     * Sets URL endpoint of sync server.
+     * @param url sync server URL
+     */
     public void setCloudUrl(String url) {
         cloudURL = url;
         networkClient.setCloudURL(url);
@@ -288,32 +314,32 @@ public class FHSyncService extends IntentService {
     /**
      * Uses the sync client to manage a dataset.
      *
-     * @param pDataId      The id of the dataset.
-     * @param pConfig      The sync configuration for the dataset. If not specified,
+     * @param dataId      The id of the dataset.
+     * @param config      The sync configuration for the dataset. If not specified,
      *                     the sync configuration passed in the initDev method will be used
-     * @param pQueryParams Query parameters for the dataset
+     * @param queryParams Query parameters for the dataset
      *
      * @throws IllegalStateException thrown if FHSyncClient isn't initialised.
      */
-    public void manage(String pDataId, FHSyncConfig pConfig, JSONObject pQueryParams) {
-        manage(pDataId, pConfig, pQueryParams, new JSONObject());
+    public void manage(String dataId, FHSyncConfig config, JSONObject queryParams) {
+        manage(dataId, config, queryParams, new JSONObject());
     }
 
     /**
      * Uses the sync client to manage a dataset.
      *
-     * @param pDataId      The id of the dataset.
-     * @param pConfig      The sync configuration for the dataset. If not specified,
+     * @param dataId      The id of the dataset.
+     * @param config      The sync configuration for the dataset. If not specified,
      *                     the sync configuration passed in the initDev method will be used
-     * @param pQueryParams Query parameters for the dataset
-     * @param pMetaData    Meta for the dataset
+     * @param queryParams Query parameters for the dataset
+     * @param metadata    Meta for the dataset
      *
      * @throws IllegalStateException thrown if FHSyncClient isn't initialised.
      */
-    public void manage(String pDataId, FHSyncConfig pConfig, JSONObject pQueryParams, JSONObject pMetaData) {
-        log.d(SERVICE_NAME, "managing dataset " + pDataId);
-        syncClient.manage(pDataId, pConfig, pQueryParams, pMetaData);
-        managedDatasets.put(pDataId, new ManagedDatasetConfig(pConfig, pQueryParams, pMetaData));
+    public void manage(String dataId, FHSyncConfig config, JSONObject queryParams, JSONObject metadata) {
+        log.d(SERVICE_NAME, "managing dataset " + dataId);
+        syncClient.manage(dataId, config, queryParams, metadata);
+        managedDatasets.put(dataId, new ManagedDatasetConfig(config, queryParams, metadata));
         try {
             saveSyncConfig();
         } catch (IOException e) {
@@ -324,106 +350,106 @@ public class FHSyncService extends IntentService {
     /**
      * Causes the sync framework to schedule for immediate execution a sync.
      *
-     * @param pDataId The id of the dataset
+     * @param dataId The id of the dataset
      */
-    public void forceSync(String pDataId) {
-        syncClient.forceSync(pDataId);
+    public void forceSync(String dataId) {
+        syncClient.forceSync(dataId);
     }
 
     /**
-     * Lists all the data in the dataset with pDataId.
+     * Lists all the data in the dataset with dataId.
      *
-     * @param pDataId The id of the dataset
+     * @param dataId The id of the dataset
      *
      * @return all data records. Each record contains a key "uid" with the id
      * value and a key "data" with the JSON data.
      */
-    public JSONObject list(String pDataId) {
-        return syncClient.list(pDataId);
+    public JSONObject list(String dataId) {
+        return syncClient.list(dataId);
     }
 
     /**
-     * Reads a data record with pUID in dataset with pDataId.
+     * Reads a data record with uid in dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pUID    the id of the data record
+     * @param dataId the id of the dataset
+     * @param uid    the id of the data record
      *
      * @return the data record. Each record contains a key "uid" with the id
      * value and a key "data" with the JSON data.
      */
-    public JSONObject read(String pDataId, String pUID) {
-        return syncClient.read(pDataId, pUID);
+    public JSONObject read(String dataId, String uid) {
+        return syncClient.read(dataId, uid);
     }
 
     /**
-     * Creates a new data record in dataset with pDataId.
+     * Creates a new data record in dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pData   the actual data
+     * @param dataId the id of the dataset
+     * @param data   the actual data
      *
      * @return the created data record. Each record contains a key "uid" with
      * the id value and a key "data" with the JSON data.
      *
      * @throws DataSetNotFound if the dataId is not known
      */
-    public JSONObject create(String pDataId, JSONObject pData) throws DataSetNotFound {
-        return syncClient.create(pDataId, pData);
+    public JSONObject create(String dataId, JSONObject data) throws DataSetNotFound {
+        return syncClient.create(dataId, data);
     }
 
     /**
-     * Updates an existing data record in dataset with pDataId.
+     * Updates an existing data record in dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pUID    the id of the data record
-     * @param pData   the new content of the data record
+     * @param dataId the id of the dataset
+     * @param uid    the id of the data record
+     * @param data   the new content of the data record
      *
      * @return the updated data record. Each record contains a key "uid" with
      * the id value and a key "data" with the JSON data.
      *
      * @throws DataSetNotFound if the dataId is not known
      */
-    public JSONObject update(String pDataId, String pUID, JSONObject pData) throws DataSetNotFound {
-        return syncClient.update(pDataId, pUID, pData);
+    public JSONObject update(String dataId, String uid, JSONObject data) throws DataSetNotFound {
+        return syncClient.update(dataId, uid, data);
     }
 
     /**
-     * Deletes a data record in the dataset with pDataId.
+     * Deletes a data record in the dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pUID    the id of the data record
+     * @param dataId the id of the dataset
+     * @param uid    the id of the data record
      *
      * @return the deleted data record. Each record contains a key "uid" with
      * the id value and a key "data" with the JSON data.
      *
      * @throws DataSetNotFound if the dataId is not known
      */
-    public JSONObject delete(String pDataId, String pUID) throws DataSetNotFound {
-        return syncClient.delete(pDataId, pUID);
+    public JSONObject delete(String dataId, String uid) throws DataSetNotFound {
+        return syncClient.delete(dataId, uid);
     }
 
     /**
-     * Lists sync collisions in dataset with id pDataId.
+     * Lists sync collisions in dataset with id dataId.
      *
-     * @param pDataId   the id of the dataset
-     * @param pCallback the callback function
+     * @param dataId   the id of the dataset
+     * @param callback the callback function
      *
      * @throws FHNotReadyException if FH is not initialized.
      */
-    public void listCollisions(String pDataId, SyncNetworkCallback pCallback) throws FHNotReadyException {
-        syncClient.listCollisions(pDataId, pCallback);
+    public void listCollisions(String dataId, SyncNetworkCallback callback) throws FHNotReadyException {
+        syncClient.listCollisions(dataId, callback);
     }
 
     /**
-     * Removes a sync collision record in the dataset with id pDataId.
+     * Removes a sync collision record in the dataset with id dataId.
      *
-     * @param pDataId        the id of the dataset
-     * @param pCollisionHash the hash value of the collision record
-     * @param pCallback      the callback function
+     * @param dataId        the id of the dataset
+     * @param collisionHash the hash value of the collision record
+     * @param callback      the callback function
      *
      * @throws FHNotReadyException thrown if Sync is not initialized.
      */
-    public void removeCollision(String pDataId, String pCollisionHash, SyncNetworkCallback pCallback) throws FHNotReadyException {
-        syncClient.removeCollision(pDataId, pCollisionHash, pCallback);
+    public void removeCollision(String dataId, String collisionHash, SyncNetworkCallback callback) throws FHNotReadyException {
+        syncClient.removeCollision(dataId, collisionHash, callback);
     }
 
     @Override

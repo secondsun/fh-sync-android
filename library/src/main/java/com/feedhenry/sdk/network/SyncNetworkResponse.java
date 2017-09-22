@@ -23,17 +23,17 @@ import org.json.JSONObject;
 
 public class SyncNetworkResponse {
 
-    private JSONObject mResults;
-    private Throwable mError;
-    private String mErrorMessage;
+    private JSONObject results;
+    private Throwable error;
+    private String errorMessage;
 
-    public SyncNetworkResponse(Throwable e, String pError){
-        mError = e;
-        mErrorMessage = pError;
+    public SyncNetworkResponse(Throwable e, String error){
+        this.error = e;
+        errorMessage = error;
     }
 
-    public SyncNetworkResponse(JSONObject pResults) {
-        mResults = pResults;
+    public SyncNetworkResponse(JSONObject results) {
+        this.results = results;
     }
 
     /**
@@ -42,7 +42,7 @@ public class SyncNetworkResponse {
      * @return a JSONObject
      */
     public JSONObject getJson() {
-        return mResults;
+        return results;
     }
 
     /**
@@ -51,7 +51,7 @@ public class SyncNetworkResponse {
      * @return the error
      */
     public Throwable getError() {
-        return mError;
+        return error;
     }
 
     /**
@@ -60,7 +60,7 @@ public class SyncNetworkResponse {
      * @return the error message
      */
     public String getErrorMessage() {
-        return mErrorMessage;
+        return errorMessage;
     }
 
     /**
@@ -69,10 +69,10 @@ public class SyncNetworkResponse {
      * @return the raw response content
      */
     public String getRawResponse() {
-        if (mResults != null) {
-            return mResults.toString();
+        if (results != null) {
+            return results.toString();
         } else {
-            return mErrorMessage;
+            return errorMessage;
         }
     }
 }

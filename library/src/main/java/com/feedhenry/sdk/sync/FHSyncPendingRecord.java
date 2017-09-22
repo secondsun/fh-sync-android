@@ -104,61 +104,53 @@ public class FHSyncPendingRecord {
         return ret;
     }
 
-    public static FHSyncPendingRecord fromJSON(JSONObject pObj) throws JSONException {
+    public static FHSyncPendingRecord fromJSON(JSONObject obj) throws JSONException {
         FHSyncPendingRecord record = new FHSyncPendingRecord();
-        if (pObj.has(KEY_INFLIGHT)) {
-            record.setInFlight(pObj.getBoolean(KEY_INFLIGHT));
+        if (obj.has(KEY_INFLIGHT)) {
+            record.setInFlight(obj.getBoolean(KEY_INFLIGHT));
         }
-        if (pObj.has(KEY_INFLIGHT_DATE)) {
-            record.setInFlightDate(new Date(pObj.getLong(KEY_INFLIGHT_DATE)));
+        if (obj.has(KEY_INFLIGHT_DATE)) {
+            record.setInFlightDate(new Date(obj.getLong(KEY_INFLIGHT_DATE)));
         }
-        if (pObj.has(KEY_CRASHED)) {
-            record.setCrashed(pObj.getBoolean(KEY_CRASHED));
+        if (obj.has(KEY_CRASHED)) {
+            record.setCrashed(obj.getBoolean(KEY_CRASHED));
         }
-        if (pObj.has(KEY_TIMESTAMP)) {
-            record.setTimestamp(pObj.getLong(KEY_TIMESTAMP));
+        if (obj.has(KEY_TIMESTAMP)) {
+            record.setTimestamp(obj.getLong(KEY_TIMESTAMP));
         }
-        if (pObj.has(KEY_ACTION)) {
-            record.setAction(pObj.getString(KEY_ACTION));
+        if (obj.has(KEY_ACTION)) {
+            record.setAction(obj.getString(KEY_ACTION));
         }
-        if (pObj.has(KEY_UID)) {
-            record.setUid(pObj.getString(KEY_UID));
+        if (obj.has(KEY_UID)) {
+            record.setUid(obj.getString(KEY_UID));
         }
-        if (pObj.has(KEY_PRE)) {
+        if (obj.has(KEY_PRE)) {
             FHSyncDataRecord preData = new FHSyncDataRecord();
-            preData.setData(pObj.getJSONObject(KEY_PRE));
-            preData.setHashValue(pObj.getString(KEY_PRE_HASH));
+            preData.setData(obj.getJSONObject(KEY_PRE));
+            preData.setHashValue(obj.getString(KEY_PRE_HASH));
             record.setPreData(preData);
         }
-        if (pObj.has(KEY_POST)) {
+        if (obj.has(KEY_POST)) {
             FHSyncDataRecord postData = new FHSyncDataRecord();
-            postData.setData(pObj.getJSONObject(KEY_POST));
-            postData.setHashValue(pObj.getString(KEY_POST_HASH));
+            postData.setData(obj.getJSONObject(KEY_POST));
+            postData.setHashValue(obj.getString(KEY_POST_HASH));
             record.setPostData(postData);
         }
 
-        if (pObj.has(KEY_DELAYED)) {
-            record.delayed = pObj.getBoolean(KEY_DELAYED);
+        if (obj.has(KEY_DELAYED)) {
+            record.delayed = obj.getBoolean(KEY_DELAYED);
         }
 
-        if (pObj.has(KEY_WAITING_FOR)) {
-            record.waitingFor = pObj.getString(KEY_WAITING_FOR);
+        if (obj.has(KEY_WAITING_FOR)) {
+            record.waitingFor = obj.getString(KEY_WAITING_FOR);
         }
 
         return record;
     }
 
-    public boolean equals(Object pThat) {
+    public boolean equals(Object that) {
         try {
-            if (this == pThat) {
-                return true;
-            }
-            if (pThat instanceof FHSyncPendingRecord) {
-                FHSyncPendingRecord that = (FHSyncPendingRecord) pThat;
-                return this.getHashValue().equals(that.getHashValue());
-            } else {
-                return false;
-            }
+            return this == that || that instanceof FHSyncPendingRecord && this.getHashValue().equals(((FHSyncPendingRecord) that).getHashValue());
         } catch (JSONException e) {
             return false;
         }

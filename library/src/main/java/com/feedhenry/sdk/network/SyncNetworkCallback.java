@@ -21,14 +21,14 @@ public interface SyncNetworkCallback {
     /**
      * Will be run if the action call is successful
      *
-     * @param pResponse the response data
+     * @param response the response data
      */
-    void success(SyncNetworkResponse pResponse);
+    void success(SyncNetworkResponse response);
 
     /**
      * Will be run if the action call is failed
      *
-     * @param pResponse the response data
+     * @param response the response data
      */
-    void fail(SyncNetworkResponse pResponse);
+    void fail(SyncNetworkResponse response);
 }

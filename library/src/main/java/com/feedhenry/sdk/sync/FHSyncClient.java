@@ -41,21 +41,20 @@ import java.util.Map;
  */
 public class FHSyncClient {
 
-    private static FHSyncClient mInstance;
 
-    protected static final String LOG_TAG = "FHSyncClient";
+    private static final String LOG_TAG = "FHSyncClient";
 
-    private Handler mHandler;
+    private Handler handler;
     private NetworkClient networkClient;
 
-    private Map<String, FHSyncDataset> mDataSets = new HashMap<String, FHSyncDataset>();
-    private FHSyncConfig mConfig = new FHSyncConfig();
-    private FHSyncListener mSyncListener = null;
+    private Map<String, FHSyncDataset> datasets = new HashMap<>();
+    private FHSyncConfig config = new FHSyncConfig();
+    private FHSyncListener syncListener = null;
 
-    private FHSyncNotificationHandler mNotificationHandler;
+    private FHSyncNotificationHandler notificationHandler;
 
-    private boolean mInitialised = false;
-    private MonitorTask mMonitorTask = null;
+    private boolean initialized = false;
+    private MonitorTask monitorTask = null;
     private UtilFactory utilFactory;
     private Logger log;
     private HandlerThread syncClientThread;
@@ -69,23 +68,23 @@ public class FHSyncClient {
      * @param utilFactory Utility class factory (it provides storage, network access, etc.)
      */
     public FHSyncClient(FHSyncConfig config, UtilFactory utilFactory) {
-        mConfig = config;
+        this.config = config;
         this.utilFactory = utilFactory;
         this.networkClient = utilFactory.getNetworkClient();
         this.log = utilFactory.getLogger();
 
         initHandlers();
-        mInitialised = true;
+        initialized = true;
 
         syncClientThread = new HandlerThread("FHSyncClient");
         syncClientThread.start();
-        mHandler = new Handler(syncClientThread.getLooper());
-        if (null == mMonitorTask) {
+        handler = new Handler(syncClientThread.getLooper());
+        if (null == monitorTask) {
             monitorThread = new HandlerThread("FHSyncClient_monitor");
             monitorThread.start();
             Handler handler = new Handler(monitorThread.getLooper());
-            mMonitorTask = new MonitorTask();
-            handler.post(mMonitorTask);
+            monitorTask = new MonitorTask();
+            handler.post(monitorTask);
         }
     }
 
@@ -94,65 +93,65 @@ public class FHSyncClient {
      */
     private void initHandlers() {
         if (null != Looper.myLooper()) {
-            mNotificationHandler = new FHSyncNotificationHandler(this.mSyncListener);
+            notificationHandler = new FHSyncNotificationHandler(this.syncListener);
         } else {
             HandlerThread ht = new HandlerThread("FHSyncClientNotificationHanlder");
             ht.start();
-            mNotificationHandler = new FHSyncNotificationHandler(ht.getLooper(), this.mSyncListener);
+            notificationHandler = new FHSyncNotificationHandler(ht.getLooper(), this.syncListener);
         }
     }
 
     /**
      * Re-sets the sync listener.
      *
-     * @param pListener the new sync listener
+     * @param listener the new sync listener
      */
-    public void setListener(FHSyncListener pListener) {
-        mSyncListener = pListener;
-        if (null != mNotificationHandler) {
-            mNotificationHandler.setSyncListener(mSyncListener);
+    public void setListener(FHSyncListener listener) {
+        syncListener = listener;
+        if (null != notificationHandler) {
+            notificationHandler.setSyncListener(syncListener);
         }
     }
 
     /**
      * Uses the sync client to manage a dataset.
      *
-     * @param pDataId      The id of the dataset.
-     * @param pConfig      The sync configuration for the dataset. If not specified,
+     * @param dataId      The id of the dataset.
+     * @param config      The sync configuration for the dataset. If not specified,
      *                     the sync configuration passed in the initDev method will be used
-     * @param pQueryParams Query parameters for the dataset
+     * @param queryParams Query parameters for the dataset
      *
      * @throws IllegalStateException thrown if FHSyncClient isn't initialised.
      */
-    public void manage(String pDataId, FHSyncConfig pConfig, JSONObject pQueryParams) {
-        manage(pDataId, pConfig, pQueryParams, new JSONObject());
+    public void manage(String dataId, FHSyncConfig config, JSONObject queryParams) {
+        manage(dataId, config, queryParams, new JSONObject());
     }
 
     /**
      * Uses the sync client to manage a dataset.
      *
-     * @param pDataId      The id of the dataset.
-     * @param pConfig      The sync configuration for the dataset. If not specified,
+     * @param dataId      The id of the dataset.
+     * @param config      The sync configuration for the dataset. If not specified,
      *                     the sync configuration passed in the initDev method will be used
-     * @param pQueryParams Query parameters for the dataset
-     * @param pMetaData    Meta for the dataset
+     * @param queryParams Query parameters for the dataset
+     * @param metaData    Meta for the dataset
      *
      * @throws IllegalStateException thrown if FHSyncClient isn't initialised.
      */
-    public void manage(String pDataId, FHSyncConfig pConfig, JSONObject pQueryParams, JSONObject pMetaData) {
-        if (!mInitialised) {
+    public void manage(String dataId, FHSyncConfig config, JSONObject queryParams, JSONObject metaData) {
+        if (!initialized) {
             throw new IllegalStateException("FHSyncClient isn't initialised. Have you called the initDev function?");
         }
-        FHSyncDataset dataset = mDataSets.get(pDataId);
-        FHSyncConfig syncConfig = mConfig;
-        if (null != pConfig) {
-            syncConfig = pConfig;
+        FHSyncDataset dataset = datasets.get(dataId);
+        FHSyncConfig syncConfig = this.config;
+        if (null != config) {
+            syncConfig = config;
         }
         if (null != dataset) {
-            dataset.setNotificationHandler(mNotificationHandler);
+            dataset.setNotificationHandler(notificationHandler);
         } else {
-            dataset = new FHSyncDataset(mNotificationHandler, pDataId, syncConfig, pQueryParams, pMetaData, utilFactory);
-            mDataSets.put(pDataId, dataset);
+            dataset = new FHSyncDataset(notificationHandler, dataId, syncConfig, queryParams, metaData, utilFactory);
+            datasets.put(dataId, dataset);
             dataset.setSyncRunning(false);
             dataset.setInitialised(true);
         }
@@ -169,10 +168,10 @@ public class FHSyncClient {
     /**
      * Causes the sync framework to schedule for immediate execution a sync.
      *
-     * @param pDataId The id of the dataset
+     * @param dataId The id of the dataset
      */
-    public void forceSync(String pDataId) {
-        FHSyncDataset dataset = mDataSets.get(pDataId);
+    public void forceSync(String dataId) {
+        FHSyncDataset dataset = datasets.get(dataId);
 
         if (null != dataset) {
             dataset.setSyncPending(true);
@@ -180,15 +179,15 @@ public class FHSyncClient {
     }
 
     /**
-     * Lists all the data in the dataset with pDataId.
+     * Lists all the data in the dataset with dataId.
      *
-     * @param pDataId The id of the dataset
+     * @param dataId The id of the dataset
      *
      * @return all data records. Each record contains a key "uid" with the id
      * value and a key "data" with the JSON data.
      */
-    public JSONObject list(String pDataId) {
-        FHSyncDataset dataset = mDataSets.get(pDataId);
+    public JSONObject list(String dataId) {
+        FHSyncDataset dataset = datasets.get(dataId);
         JSONObject data = null;
         if (null != dataset) {
             data = dataset.listData();
@@ -197,117 +196,117 @@ public class FHSyncClient {
     }
 
     /**
-     * Reads a data record with pUID in dataset with pDataId.
+     * Reads a data record with uid in dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pUID    the id of the data record
+     * @param dataId the id of the dataset
+     * @param uid    the id of the data record
      *
      * @return the data record. Each record contains a key "uid" with the id
      * value and a key "data" with the JSON data.
      */
-    public JSONObject read(String pDataId, String pUID) {
-        FHSyncDataset dataset = mDataSets.get(pDataId);
+    public JSONObject read(String dataId, String uid) {
+        FHSyncDataset dataset = datasets.get(dataId);
         JSONObject data = null;
         if (null != dataset) {
-            data = dataset.readData(pUID);
+            data = dataset.readData(uid);
         }
         return data;
     }
 
     /**
-     * Creates a new data record in dataset with pDataId.
+     * Creates a new data record in dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pData   the actual data
+     * @param dataId the id of the dataset
+     * @param data   the actual data
      *
      * @return the created data record. Each record contains a key "uid" with
      * the id value and a key "data" with the JSON data.
      *
      * @throws DataSetNotFound if the dataId is not known
      */
-    public JSONObject create(String pDataId, JSONObject pData) throws DataSetNotFound {
-        FHSyncDataset dataset = mDataSets.get(pDataId);
+    public JSONObject create(String dataId, JSONObject data) throws DataSetNotFound {
+        FHSyncDataset dataset = datasets.get(dataId);
         if (null != dataset) {
-            return dataset.createData(pData);
+            return dataset.createData(data);
         } else {
-            throw new DataSetNotFound("Unknown dataId : " + pDataId);
+            throw new DataSetNotFound("Unknown dataId : " + dataId);
         }
     }
 
     /**
-     * Updates an existing data record in dataset with pDataId.
+     * Updates an existing data record in dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pUID    the id of the data record
-     * @param pData   the new content of the data record
+     * @param dataId the id of the dataset
+     * @param uid    the id of the data record
+     * @param data   the new content of the data record
      *
      * @return the updated data record. Each record contains a key "uid" with
      * the id value and a key "data" with the JSON data.
      *
      * @throws DataSetNotFound if the dataId is not known
      */
-    public JSONObject update(String pDataId, String pUID, JSONObject pData) throws DataSetNotFound {
-        FHSyncDataset dataset = mDataSets.get(pDataId);
+    public JSONObject update(String dataId, String uid, JSONObject data) throws DataSetNotFound {
+        FHSyncDataset dataset = datasets.get(dataId);
         if (null != dataset) {
-            return dataset.updateData(pUID, pData);
+            return dataset.updateData(uid, data);
         } else {
-            throw new DataSetNotFound("Unknown dataId : " + pDataId);
+            throw new DataSetNotFound("Unknown dataId : " + dataId);
         }
     }
 
     /**
-     * Deletes a data record in the dataset with pDataId.
+     * Deletes a data record in the dataset with dataId.
      *
-     * @param pDataId the id of the dataset
-     * @param pUID    the id of the data record
+     * @param dataId the id of the dataset
+     * @param uid    the id of the data record
      *
      * @return the deleted data record. Each record contains a key "uid" with
      * the id value and a key "data" with the JSON data.
      *
      * @throws DataSetNotFound if the dataId is not known
      */
-    public JSONObject delete(String pDataId, String pUID) throws DataSetNotFound {
-        FHSyncDataset dataset = mDataSets.get(pDataId);
+    public JSONObject delete(String dataId, String uid) throws DataSetNotFound {
+        FHSyncDataset dataset = datasets.get(dataId);
         if (null != dataset) {
-            return dataset.deleteData(pUID);
+            return dataset.deleteData(uid);
         } else {
-            throw new DataSetNotFound("Unknown dataId : " + pDataId);
+            throw new DataSetNotFound("Unknown dataId : " + dataId);
         }
     }
 
     /**
-     * Lists sync collisions in dataset with id pDataId.
+     * Lists sync collisions in dataset with id dataId.
      *
-     * @param pDataId   the id of the dataset
-     * @param pCallback the callback function
+     * @param dataId   the id of the dataset
+     * @param callback the callback function
      *
      * @throws FHNotReadyException if FH is not initialized.
      */
-    public void listCollisions(String pDataId, SyncNetworkCallback pCallback) throws FHNotReadyException {
+    public void listCollisions(String dataId, SyncNetworkCallback callback) throws FHNotReadyException {
         JSONObject params = new JSONObject();
         try {
             params.put("fn", "listCollisions");
-            networkClient.performRequest(pDataId, params, pCallback);
+            networkClient.performRequest(dataId, params, callback);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
-     * Removes a sync collision record in the dataset with id pDataId.
+     * Removes a sync collision record in the dataset with id dataId.
      *
-     * @param pDataId        the id of the dataset
-     * @param pCollisionHash the hash value of the collision record
-     * @param pCallback      the callback function
+     * @param dataId        the id of the dataset
+     * @param collisionHash the hash value of the collision record
+     * @param callback      the callback function
      *
      * @throws FHNotReadyException thrown if Sync is not initialized.
      */
-    public void removeCollision(String pDataId, String pCollisionHash, SyncNetworkCallback pCallback) throws FHNotReadyException {
+    public void removeCollision(String dataId, String collisionHash, SyncNetworkCallback callback) throws FHNotReadyException {
         JSONObject params = new JSONObject();
         try {
             params.put("fn", "removeCollision");
-            params.put("hash", pCollisionHash);
-            networkClient.performRequest(pDataId, params, pCallback);
+            params.put("hash", collisionHash);
+            networkClient.performRequest(dataId, params, callback);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -324,7 +323,7 @@ public class FHSyncClient {
     public void resumeSync(FHSyncListener listener) {
 
         if (listener != null) {
-            this.mSyncListener = listener;
+            this.syncListener = listener;
         }
 
         stopSync(false);
@@ -337,7 +336,7 @@ public class FHSyncClient {
      * @param shouldStopSync true=stop, false=start
      */
     public void stopSync(boolean shouldStopSync) {
-        for (FHSyncDataset dataSet : mDataSets.values()) {
+        for (FHSyncDataset dataSet : datasets.values()) {
             dataSet.stopSync(shouldStopSync);
         }
     }
@@ -350,16 +349,16 @@ public class FHSyncClient {
 
         stopSync(true);
 
-        this.mSyncListener = null;
+        this.syncListener = null;
     }
 
     /**
-     * Stops the sync process for dataset with id pDataId.
+     * Stops the sync process for dataset with id dataId.
      *
-     * @param pDataId the id of the dataset
+     * @param dataId the id of the dataset
      */
-    public void stop(String pDataId) {
-        FHSyncDataset dataset = mDataSets.get(pDataId);
+    public void stop(String dataId) {
+        FHSyncDataset dataset = datasets.get(dataId);
         if (null != dataset) {
             dataset.stopSync(true);
         }
@@ -369,20 +368,20 @@ public class FHSyncClient {
      * Stops all sync processes for all the datasets managed by the sync client.
      */
     public void destroy() {
-        if (mInitialised) {
-            if (null != mMonitorTask) {
-                mMonitorTask.stopRunning();
+        if (initialized) {
+            if (null != monitorTask) {
+                monitorTask.stopRunning();
             }
             if (syncClientThread != null) {
                 syncClientThread.quit();
             }
-            for (String key : mDataSets.keySet()) {
+            for (String key : datasets.keySet()) {
                 stop(key);
             }
-            mSyncListener = null;
-            mNotificationHandler = null;
-            mDataSets = new HashMap<>();
-            mInitialised = false;
+            syncListener = null;
+            notificationHandler = null;
+            datasets = new HashMap<>();
+            initialized = false;
         }
     }
 
@@ -397,8 +396,8 @@ public class FHSyncClient {
         }
 
         private void checkDatasets() {
-            if (null != mDataSets) {
-                for (Map.Entry<String, FHSyncDataset> entry : mDataSets.entrySet()) {
+            if (null != datasets) {
+                for (Map.Entry<String, FHSyncDataset> entry : datasets.entrySet()) {
                     final FHSyncDataset dataset = entry.getValue();
                     boolean syncRunning = dataset.isSyncRunning();
                     if (!syncRunning && !dataset.isStopSync()) {
@@ -416,7 +415,7 @@ public class FHSyncClient {
                         }
 
                         if (dataset.isSyncPending()) {
-                            mHandler.post(dataset::startSyncLoop);
+                            handler.post(dataset::startSyncLoop);
                         }
                     }
                 }

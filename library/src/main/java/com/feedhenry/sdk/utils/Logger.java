@@ -30,43 +30,43 @@ public interface Logger {
     /**
      * Log using VERBOSE level
      *
-     * @param pTag     log tag
-     * @param pMessage log message
+     * @param tag     log tag
+     * @param message log message
      */
-    void v(String pTag, String pMessage);
+    void v(String tag, String message);
 
     /**
      * Log using DEBUG level
      *
-     * @param pTag     log tag
-     * @param pMessage log message
+     * @param tag     log tag
+     * @param message log message
      */
-    void d(String pTag, String pMessage);
+    void d(String tag, String message);
 
     /**
      * Log using INFO level
      *
-     * @param pTag     log tag
-     * @param pMessage log message
+     * @param tag     log tag
+     * @param message log message
      */
-    void i(String pTag, String pMessage);
+    void i(String tag, String message);
 
     /**
      * Log using WARNING level
      *
-     * @param pTag     log tag
-     * @param pMessage log message
+     * @param tag     log tag
+     * @param message log message
      */
-    void w(String pTag, String pMessage);
+    void w(String tag, String message);
 
     /**
      * Log using ERROR level
      *
-     * @param pTag       log tag
-     * @param pMessage   log message
+     * @param tag       log tag
+     * @param message   log message
      * @param pThrowable exception causing error
      */
-    void e(String pTag, String pMessage, Throwable pThrowable);
+    void e(String tag, String message, Throwable pThrowable);
 
     /**
      * Sets log level of the logger.

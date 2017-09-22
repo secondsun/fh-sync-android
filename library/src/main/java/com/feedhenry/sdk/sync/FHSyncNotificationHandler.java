@@ -1,12 +1,12 @@
 /**
  * Copyright Red Hat, Inc, and individual contributors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,55 +21,55 @@ import android.os.Message;
 
 public class FHSyncNotificationHandler extends Handler {
 
-    private FHSyncListener mSyncListener;
+    private FHSyncListener syncListener;
 
-    public FHSyncNotificationHandler(FHSyncListener pListener) {
+    public FHSyncNotificationHandler(FHSyncListener listener) {
         super();
-        mSyncListener = pListener;
+        syncListener = listener;
     }
 
-    public FHSyncNotificationHandler(Looper pLooper, FHSyncListener pListener) {
-        super(pLooper);
-        mSyncListener = pListener;
+    public FHSyncNotificationHandler(Looper looper, FHSyncListener listener) {
+        super(looper);
+        syncListener = listener;
     }
 
-    public void setSyncListener(FHSyncListener pListener) {
-        mSyncListener = pListener;
+    public void setSyncListener(FHSyncListener listener) {
+        syncListener = listener;
     }
 
-    public void handleMessage(Message pMsg) {
-        NotificationMessage notification = (NotificationMessage) pMsg.obj;
-        if (mSyncListener != null) {
-            switch (pMsg.what) {
+    public void handleMessage(Message msg) {
+        NotificationMessage notification = (NotificationMessage) msg.obj;
+        if (syncListener != null) {
+            switch (msg.what) {
                 case NotificationMessage.SYNC_STARTED_CODE:
-                    mSyncListener.onSyncStarted(notification);
+                    syncListener.onSyncStarted(notification);
                     break;
                 case NotificationMessage.SYNC_COMPLETE_CODE:
-                    mSyncListener.onSyncCompleted(notification);
+                    syncListener.onSyncCompleted(notification);
                     break;
                 case NotificationMessage.OFFLINE_UPDATE_CODE:
-                    mSyncListener.onUpdateOffline(notification);
+                    syncListener.onUpdateOffline(notification);
                     break;
                 case NotificationMessage.COLLISION_DETECTED_CODE:
-                    mSyncListener.onCollisionDetected(notification);
+                    syncListener.onCollisionDetected(notification);
                     break;
                 case NotificationMessage.REMOTE_UPDATE_FAILED_CODE:
-                    mSyncListener.onRemoteUpdateFailed(notification);
+                    syncListener.onRemoteUpdateFailed(notification);
                     break;
                 case NotificationMessage.REMOTE_UPDATE_APPLIED_CODE:
-                    mSyncListener.onRemoteUpdateApplied(notification);
+                    syncListener.onRemoteUpdateApplied(notification);
                     break;
                 case NotificationMessage.LOCAL_UPDATE_APPLIED_CODE:
-                    mSyncListener.onLocalUpdateApplied(notification);
+                    syncListener.onLocalUpdateApplied(notification);
                     break;
                 case NotificationMessage.DELTA_RECEIVED_CODE:
-                    mSyncListener.onDeltaReceived(notification);
+                    syncListener.onDeltaReceived(notification);
                     break;
                 case NotificationMessage.SYNC_FAILED_CODE:
-                    mSyncListener.onSyncFailed(notification);
+                    syncListener.onSyncFailed(notification);
                     break;
                 case NotificationMessage.CLIENT_STORAGE_FAILED_CODE:
-                    mSyncListener.onClientStorageFailed(notification);
+                    syncListener.onClientStorageFailed(notification);
                 default:
                     break;
             }

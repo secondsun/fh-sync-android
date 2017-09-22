@@ -36,13 +36,13 @@ public class FHSyncDataRecord {
 
     }
 
-    public FHSyncDataRecord(JSONObject pData) throws JSONException {
-        setData(pData);
+    public FHSyncDataRecord(JSONObject data) throws JSONException {
+        setData(data);
     }
 
-    public FHSyncDataRecord(String pUid, JSONObject pData) throws JSONException {
-        this.uid = pUid;
-        setData(pData);
+    public FHSyncDataRecord(String uid, JSONObject data) throws JSONException {
+        this.uid = uid;
+        setData(data);
     }
 
     public String getHashValue() {
@@ -57,17 +57,17 @@ public class FHSyncDataRecord {
         return uid;
     }
 
-    public void setData(JSONObject pData) throws JSONException {
-        data = new JSONObject(pData.toString());
-        hashValue = FHSyncUtils.generateObjectHash(data);
+    public void setData(JSONObject data) throws JSONException {
+        this.data = new JSONObject(data.toString());
+        hashValue = FHSyncUtils.generateObjectHash(this.data);
     }
 
-    public void setUid(String pUid) {
-        this.uid = pUid;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
-    public void setHashValue(String pHashValue) {
-        this.hashValue = pHashValue;
+    public void setHashValue(String hashValue) {
+        this.hashValue = hashValue;
     }
 
     public JSONObject getJSON() throws JSONException {
@@ -114,16 +114,16 @@ public class FHSyncDataRecord {
         }
     }
 
-    public static FHSyncDataRecord fromJSON(JSONObject pObj) throws JSONException {
+    public static FHSyncDataRecord fromJSON(JSONObject obj) throws JSONException {
         FHSyncDataRecord record = new FHSyncDataRecord();
-        if (pObj.has(KEY_UID)) {
-            record.setUid(pObj.getString(KEY_UID));
+        if (obj.has(KEY_UID)) {
+            record.setUid(obj.getString(KEY_UID));
         }
-        if (pObj.has(KEY_DATA)) {
-            record.setData(pObj.getJSONObject(KEY_DATA));
+        if (obj.has(KEY_DATA)) {
+            record.setData(obj.getJSONObject(KEY_DATA));
         }
-        if (pObj.has(KEY_HASH)) {
-            record.setHashValue(pObj.getString(KEY_HASH));
+        if (obj.has(KEY_HASH)) {
+            record.setHashValue(obj.getString(KEY_HASH));
         }
         return record;
     }

@@ -110,100 +110,100 @@ public interface FHSyncListener {
         /**
          * Sets event which is invoked when a sync loop start event is emitted
          *
-         * @param pOnSyncStarted event handler
+         * @param onSyncStarted event handler
          */
-        public Builder onSyncStarted(@NonNull FHSyncEvent pOnSyncStarted) {
-            this.onSyncStarted = pOnSyncStarted;
+        public Builder onSyncStarted(@NonNull FHSyncEvent onSyncStarted) {
+            this.onSyncStarted = onSyncStarted;
             return this;
         }
 
         /**
          * Sets event which is invoked when a sync loop complete event is emitted
          *
-         * @param pOnSyncCompleted event handler
+         * @param onSyncCompleted event handler
          */
-        public Builder onSyncCompleted(FHSyncEvent pOnSyncCompleted) {
-            this.onSyncCompleted = pOnSyncCompleted;
+        public Builder onSyncCompleted(FHSyncEvent onSyncCompleted) {
+            this.onSyncCompleted = onSyncCompleted;
             return this;
         }
 
         /**
          * Sets event which is invoked when a offline update event is emitted.
          *
-         * @param pOUpdateOffline event handler
+         * @param onUpdateOffline event handler
          */
-        public Builder onUpdateOffline(FHSyncEvent pOUpdateOffline) {
-            this.onUpdateOffline = pOUpdateOffline;
+        public Builder onUpdateOffline(FHSyncEvent onUpdateOffline) {
+            this.onUpdateOffline = onUpdateOffline;
             return this;
         }
 
         /**
          * Sets event which is invoked when a collision event is emitted.
          *
-         * @param pOnCollisionDetected event handler
+         * @param onCollisionDetected event handler
          */
-        public Builder onCollisionDetected(FHSyncEvent pOnCollisionDetected) {
-            this.onCollisionDetected = pOnCollisionDetected;
+        public Builder onCollisionDetected(FHSyncEvent onCollisionDetected) {
+            this.onCollisionDetected = onCollisionDetected;
             return this;
         }
 
         /**
          * Sets event which is invoked when a remote update failed event is emitted.
          *
-         * @param pOnRemoteUpdateFailed event handler
+         * @param onRemoteUpdateFailed event handler
          */
-        public Builder onRemoteUpdateFailed(FHSyncEvent pOnRemoteUpdateFailed) {
-            this.onRemoteUpdateFailed = pOnRemoteUpdateFailed;
+        public Builder onRemoteUpdateFailed(FHSyncEvent onRemoteUpdateFailed) {
+            this.onRemoteUpdateFailed = onRemoteUpdateFailed;
             return this;
         }
 
         /**
          * Sets event which is invoked when a remote update event is emitted.
          *
-         * @param pOnRemoteUpdateApplied event handler
+         * @param onRemoteUpdateApplied event handler
          */
-        public Builder onRemoteUpdateApplied(FHSyncEvent pOnRemoteUpdateApplied) {
-            this.onRemoteUpdateApplied = pOnRemoteUpdateApplied;
+        public Builder onRemoteUpdateApplied(FHSyncEvent onRemoteUpdateApplied) {
+            this.onRemoteUpdateApplied = onRemoteUpdateApplied;
             return this;
         }
 
         /**
          * Sets event which is invoked when a local update applied event is emitted.
          *
-         * @param pOnLocalUpdateApplied event handler
+         * @param onLocalUpdateApplied event handler
          */
-        public Builder onLocalUpdateApplied(FHSyncEvent pOnLocalUpdateApplied) {
-            this.onLocalUpdateApplied = pOnLocalUpdateApplied;
+        public Builder onLocalUpdateApplied(FHSyncEvent onLocalUpdateApplied) {
+            this.onLocalUpdateApplied = onLocalUpdateApplied;
             return this;
         }
 
         /**
          * Sets event which is invoked when a delta received event is emitted.
          *
-         * @param pOnDeltaReceived event handler
+         * @param onDeltaReceived event handler
          */
-        public Builder onDeltaReceived(FHSyncEvent pOnDeltaReceived) {
-            this.onDeltaReceived = pOnDeltaReceived;
+        public Builder onDeltaReceived(FHSyncEvent onDeltaReceived) {
+            this.onDeltaReceived = onDeltaReceived;
             return this;
         }
 
         /**
          * Sets event which is invoked when a sync failed event is emitted.
          *
-         * @param pOnSyncFailed event handler
+         * @param onSyncFailed event handler
          */
-        public Builder onSyncFailed(FHSyncEvent pOnSyncFailed) {
-            this.onSyncFailed = pOnSyncFailed;
+        public Builder onSyncFailed(FHSyncEvent onSyncFailed) {
+            this.onSyncFailed = onSyncFailed;
             return this;
         }
 
         /**
          * Sets event which is invoked when a client storage failed event is emitted.
          *
-         * @param pOnClientStorageFailed event handler
+         * @param onClientStorageFailed event handler
          */
-        public Builder onClientStorageFailed(FHSyncEvent pOnClientStorageFailed) {
-            this.onClientStorageFailed = pOnClientStorageFailed;
+        public Builder onClientStorageFailed(FHSyncEvent onClientStorageFailed) {
+            this.onClientStorageFailed = onClientStorageFailed;
             return this;
         }
 

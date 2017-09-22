@@ -1,12 +1,12 @@
 /**
  * Copyright Red Hat, Inc, and individual contributors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,31 +45,31 @@ public class NotificationMessage {
     public static final String CLIENT_STORAGE_FAILED_MESSAGE = "CLIENT_STORAGE_FAILED";
     public static final String SYNC_FAILED_MESSAGE = "SYNC_FAILED";
 
-    private static Map<Integer, String> mMessageMap = new HashMap<Integer, String>();
+    private static Map<Integer, String> messageMap = new HashMap<>();
 
     static {
-        mMessageMap.put(SYNC_STARTED_CODE, SYNC_STARTED_MESSAGE);
-        mMessageMap.put(SYNC_COMPLETE_CODE, SYNC_COMPLETE_MESSAGE);
-        mMessageMap.put(OFFLINE_UPDATE_CODE, OFFLINE_UPDATE_MESSAGE);
-        mMessageMap.put(COLLISION_DETECTED_CODE, COLLISION_DETECTED_MESSAGE);
-        mMessageMap.put(REMOTE_UPDATE_FAILED_CODE, REMOTE_UPDATE_FAILED_MESSAGE);
-        mMessageMap.put(REMOTE_UPDATE_APPLIED_CODE, REMOTE_UPDATE_APPLIED_MESSAGE);
-        mMessageMap.put(LOCAL_UPDATE_APPLIED_CODE, LOCAL_UPDATE_APPLIED_MESSAGE);
-        mMessageMap.put(DELTA_RECEIVED_CODE, DELTA_RECEIVED_MESSAGE);
-        mMessageMap.put(CLIENT_STORAGE_FAILED_CODE, CLIENT_STORAGE_FAILED_MESSAGE);
-        mMessageMap.put(SYNC_FAILED_CODE, SYNC_FAILED_MESSAGE);
+        messageMap.put(SYNC_STARTED_CODE, SYNC_STARTED_MESSAGE);
+        messageMap.put(SYNC_COMPLETE_CODE, SYNC_COMPLETE_MESSAGE);
+        messageMap.put(OFFLINE_UPDATE_CODE, OFFLINE_UPDATE_MESSAGE);
+        messageMap.put(COLLISION_DETECTED_CODE, COLLISION_DETECTED_MESSAGE);
+        messageMap.put(REMOTE_UPDATE_FAILED_CODE, REMOTE_UPDATE_FAILED_MESSAGE);
+        messageMap.put(REMOTE_UPDATE_APPLIED_CODE, REMOTE_UPDATE_APPLIED_MESSAGE);
+        messageMap.put(LOCAL_UPDATE_APPLIED_CODE, LOCAL_UPDATE_APPLIED_MESSAGE);
+        messageMap.put(DELTA_RECEIVED_CODE, DELTA_RECEIVED_MESSAGE);
+        messageMap.put(CLIENT_STORAGE_FAILED_CODE, CLIENT_STORAGE_FAILED_MESSAGE);
+        messageMap.put(SYNC_FAILED_CODE, SYNC_FAILED_MESSAGE);
     }
 
-    private String mDataId;
-    private String mUID;
-    private String mCodeMessage;
-    private String mExtraMessage;
+    private String dataId;
+    private String uid;
+    private String codeMessage;
+    private String extraMessage;
 
-    public NotificationMessage(String pDataId, String pUID, String pCodeMessage, String pExtraMessage) {
-        this.mDataId = pDataId;
-        this.mUID = pUID;
-        this.mCodeMessage = pCodeMessage;
-        this.mExtraMessage = pExtraMessage;
+    public NotificationMessage(String dataId, String uid, String codeMessage, String extraMessage) {
+        this.dataId = dataId;
+        this.uid = uid;
+        this.codeMessage = codeMessage;
+        this.extraMessage = extraMessage;
     }
 
     /**
@@ -78,7 +78,7 @@ public class NotificationMessage {
      * @return the id of the dataset associated with the event
      */
     public String getDataId() {
-        return mDataId;
+        return dataId;
     }
 
     /**
@@ -87,7 +87,7 @@ public class NotificationMessage {
      * @return the id of the data record associated with the event
      */
     public String getUID() {
-        return mUID;
+        return uid;
     }
 
     /**
@@ -96,7 +96,7 @@ public class NotificationMessage {
      * @return the code message associated with the event
      */
     public String getCode() {
-        return mCodeMessage;
+        return codeMessage;
     }
 
     /**
@@ -105,21 +105,14 @@ public class NotificationMessage {
      * @return the extra message associated with the event
      */
     public String getMessage() {
-        return mExtraMessage;
+        return extraMessage;
     }
 
     public String toString() {
-        return "DataId:"
-            + mDataId
-            + "-UID:"
-            + mUID
-            + "-Code:"
-            + mCodeMessage
-            + "-Message:"
-            + mExtraMessage;
+        return "DataId:" + dataId + "-UID:" + uid + "-Code:" + codeMessage + "-Message:" + extraMessage;
     }
 
-    public static NotificationMessage getMessage(String pDatasetId, String pUid, int pCode, String pMessage) {
-        return new NotificationMessage(pDatasetId, pUid, mMessageMap.get(pCode), pMessage);
+    public static NotificationMessage getMessage(String datasetId, String uid, int code, String message) {
+        return new NotificationMessage(datasetId, uid, messageMap.get(code), message);
     }
 }

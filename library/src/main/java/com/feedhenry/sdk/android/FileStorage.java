@@ -35,10 +35,10 @@ public class FileStorage implements Storage {
         weakContext = new WeakReference<>(ctx);
     }
 
-    private static void writeStream(InputStream pInput, OutputStream pOutput) throws IOException {
-        if (pInput != null && pOutput != null) {
-            BufferedInputStream bis = new BufferedInputStream(pInput);
-            BufferedOutputStream bos = new BufferedOutputStream(pOutput);
+    private static void writeStream(InputStream input, OutputStream output) throws IOException {
+        if (input != null && output != null) {
+            BufferedInputStream bis = new BufferedInputStream(input);
+            BufferedOutputStream bos = new BufferedOutputStream(output);
             byte[] buffer = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = bis.read(buffer)) != -1) {

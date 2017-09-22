@@ -39,10 +39,10 @@ public class NetworkClientImpl implements NetworkClient {
     private static final String FH_CUID = "cuid";
     private static final String __FH = "__fh";
     private final ClientIdGenerator clientIdGenerator;
-    private Context mContext;
-    private boolean mIsOnline;
-    private boolean mIsListenerRegistered;
-    private NetworkReceiver mReceiver;
+    private Context context;
+    private boolean isOnline;
+    private boolean isListenerRegistered;
+    private NetworkReceiver receiver;
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String LOG_TAG = "com.feedhenry.sdk.android.NetworkManager";
     private String cloudURL;
@@ -50,8 +50,8 @@ public class NetworkClientImpl implements NetworkClient {
     private static okhttp3.OkHttpClient client;
     private Logger log = FHLog.getInstance();
 
-    public NetworkClientImpl(Context pContext, ClientIdGenerator clientIdGenerator) {
-        this.mContext = pContext;
+    public NetworkClientImpl(Context context, ClientIdGenerator clientIdGenerator) {
+        this.context = context;
         if (client == null) {
             client = new okhttp3.OkHttpClient.Builder().build();
         }
@@ -59,31 +59,31 @@ public class NetworkClientImpl implements NetworkClient {
     }
 
     public void registerNetworkListener() {
-        if (!mIsListenerRegistered) {
+        if (!isListenerRegistered) {
             IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-            mReceiver = new NetworkReceiver();
-            mContext.registerReceiver(mReceiver, filter);
-            mIsListenerRegistered = true;
+            receiver = new NetworkReceiver();
+            context.registerReceiver(receiver, filter);
+            isListenerRegistered = true;
             checkNetworkStatus();
         }
     }
 
     public void unregisterNetworkListener() {
-        if (mIsListenerRegistered) {
+        if (isListenerRegistered) {
             try {
-                mContext.unregisterReceiver(mReceiver);
+                context.unregisterReceiver(receiver);
             } catch (Exception e) {
                 log.w(LOG_TAG, "Failed to unregister receiver");
             }
-            mIsListenerRegistered = false;
+            isListenerRegistered = false;
         }
     }
 
     private void checkNetworkStatus() {
-        ConnectivityManager connMgr = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        mIsOnline = networkInfo != null && networkInfo.isConnected();
-        if (mIsOnline) {
+        isOnline = networkInfo != null && networkInfo.isConnected();
+        if (isOnline) {
             String type = networkInfo.getTypeName();
             log.i(LOG_TAG, "Device is online. Connection type : " + type);
         } else {
@@ -92,7 +92,7 @@ public class NetworkClientImpl implements NetworkClient {
     }
 
     @Override
-    public void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback) {
+    public void performRequest(String datasetName, JSONObject params, SyncNetworkCallback callback) {
 
         try {
             params.put(__FH, new JSONObject().put(FH_CUID, clientIdGenerator.getClientId())); //adds client unique id
@@ -120,24 +120,24 @@ public class NetworkClientImpl implements NetworkClient {
                         String result = responseBody.string();
 
                         SyncNetworkResponse syncNetworkResponse = new SyncNetworkResponse(new JSONObject(result));
-                        pCallback.success(syncNetworkResponse);
+                        callback.success(syncNetworkResponse);
 
                     } else {
-                        pCallback.fail(new SyncNetworkResponse(null, "Null response."));
+                        callback.fail(new SyncNetworkResponse(null, "Null response."));
                     }
                 } catch (IOException e) {
-                    pCallback.fail(new SyncNetworkResponse(e, "Request failed"));
+                    callback.fail(new SyncNetworkResponse(e, "Request failed"));
                 }
             } else {
-                pCallback.fail(new SyncNetworkResponse(new InvalidUrlException(cloudURL), "Invalid cloud app URL"));
+                callback.fail(new SyncNetworkResponse(new InvalidUrlException(cloudURL), "Invalid cloud app URL"));
             }
         } catch (JSONException e) {
-            pCallback.fail(new SyncNetworkResponse(e, "JSON parsing failed."));
+            callback.fail(new SyncNetworkResponse(e, "JSON parsing failed."));
         }
     }
 
     public boolean isOnline() {
-        return mIsOnline;
+        return isOnline;
     }
 
     /**

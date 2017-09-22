@@ -20,9 +20,9 @@ package com.feedhenry.sdk.exceptions;
  */
 public class FHNotReadyException extends Exception {
 
-    private static final String mMessage = "Sync SDK is not ready. You need to ensure Sync.init is called.";
+    private static final String message = "Sync SDK is not ready. You need to ensure Sync.init is called.";
 
     public FHNotReadyException() {
-        super(mMessage);
+        super(message);
     }
 }

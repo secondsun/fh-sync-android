@@ -27,9 +27,9 @@ public interface NetworkClient {
      *
      * @param datasetName sync dataset name
      * @param params      JSON params passed to the call.
-     * @param pCallback   response callback
+     * @param callback   response callback
      */
-    void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback);
+    void performRequest(String datasetName, JSONObject params, SyncNetworkCallback callback);
 
     /**
      * @return Returns true if client is currently connected to network.
