@@ -16,8 +16,7 @@
 package com.feedhenry.sdk.sync;
 
 import android.support.test.runner.AndroidJUnit4;
-
-import org.json.fh.JSONObject;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

@@ -16,10 +16,8 @@
 package com.feedhenry.sdk.sync;
 
 import android.support.test.runner.AndroidJUnit4;
-
-import com.feedhenry.sdk.Sync;
+import com.feedhenry.sdk.android.AndroidUtilFactory;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,18 +27,21 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import static android.support.test.InstrumentationRegistry.getContext;
+import static com.feedhenry.sdk.utils.Logger.LOG_LEVEL_VERBOSE;
 
 @RunWith(AndroidJUnit4.class)
 public class FHSyncClientTest {
 
     private MockWebServer mockWebServer = null;
+    private FHSyncClient client;
+    private AndroidUtilFactory utilFactory;
 
     @Before
     public void setUp() throws Exception {
         mockWebServer = new MockWebServer();
         mockWebServer.start(9000);
-        Sync.init(getContext(), null); // this will load fhconfig.local.properties file
-        Sync.setLogLevel(Sync.LOG_LEVEL_VERBOSE);
+        utilFactory = new AndroidUtilFactory(getContext());
+        utilFactory.getLogger().setLogLevel(LOG_LEVEL_VERBOSE);
     }
 
     @After
@@ -51,18 +52,20 @@ public class FHSyncClientTest {
         } catch (IOException | InterruptedException | AssertionError ignore) {
 
         }
-        Sync.stop();
     }
 
     @Test
     public void testInitDestroyInitDestroyDoesNotThrowNPE() throws Exception {
-        FHSyncClient client = FHSyncClient.getInstance();
         CountDownLatch latch = new CountDownLatch(1);
-        client.init(getContext(), new FHSyncConfig(), new LockingSyncListener(latch));
+        client = new FHSyncClient(new FHSyncConfig(), utilFactory);
+        client.setListener(new LockingSyncListener(latch));
+        client.stopSync(false);
         client.destroy();
 
         latch = new CountDownLatch(1);
-        client.init(getContext(), new FHSyncConfig(), new LockingSyncListener(latch));
+        client = new FHSyncClient(new FHSyncConfig(), utilFactory);
+        client.setListener(new LockingSyncListener(latch));
+        client.stopSync(false);
         client.destroy();
 
     }
@@ -76,52 +79,52 @@ public class FHSyncClientTest {
         }
 
         @Override
-        public void onSyncStarted(NotificationMessage pMessage) {
+        public void onSyncStarted(NotificationMessage message) {
             latch.countDown();
         }
 
         @Override
-        public void onSyncCompleted(NotificationMessage pMessage) {
+        public void onSyncCompleted(NotificationMessage message) {
 
         }
 
         @Override
-        public void onUpdateOffline(NotificationMessage pMessage) {
+        public void onUpdateOffline(NotificationMessage message) {
 
         }
 
         @Override
-        public void onCollisionDetected(NotificationMessage pMessage) {
+        public void onCollisionDetected(NotificationMessage message) {
 
         }
 
         @Override
-        public void onRemoteUpdateFailed(NotificationMessage pMessage) {
+        public void onRemoteUpdateFailed(NotificationMessage message) {
 
         }
 
         @Override
-        public void onRemoteUpdateApplied(NotificationMessage pMessage) {
+        public void onRemoteUpdateApplied(NotificationMessage message) {
 
         }
 
         @Override
-        public void onLocalUpdateApplied(NotificationMessage pMessage) {
+        public void onLocalUpdateApplied(NotificationMessage message) {
 
         }
 
         @Override
-        public void onDeltaReceived(NotificationMessage pMessage) {
+        public void onDeltaReceived(NotificationMessage message) {
 
         }
 
         @Override
-        public void onSyncFailed(NotificationMessage pMessage) {
+        public void onSyncFailed(NotificationMessage message) {
 
         }
 
         @Override
-        public void onClientStorageFailed(NotificationMessage pMessage) {
+        public void onClientStorageFailed(NotificationMessage message) {
 
         }
     }

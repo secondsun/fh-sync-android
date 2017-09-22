@@ -16,18 +16,15 @@
 package com.feedhenry.sdk.sync;
 
 import android.util.Log;
-import java.util.Date;
-import java.util.Random;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import org.json.fh.JSONArray;
-import org.json.fh.JSONObject;
-
-import com.feedhenry.sdk.sync.FHSyncDataRecord;
-import com.feedhenry.sdk.sync.FHSyncPendingRecord;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
 
 public class FHTestUtils {
 

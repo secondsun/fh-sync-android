@@ -16,12 +16,10 @@
 package com.feedhenry.sdk.sync;
 
 import android.support.test.runner.AndroidJUnit4;
-
-import com.feedhenry.sdk.Sync;
+import com.feedhenry.sdk.android.AndroidUtilFactory;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
-
-import org.json.fh.JSONObject;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,19 +36,75 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.support.test.InstrumentationRegistry.getContext;
+import static com.feedhenry.sdk.utils.Logger.LOG_LEVEL_VERBOSE;
 
 @RunWith(AndroidJUnit4.class)
 public class FHSyncDatasetTest {
 
     private static final String DATASET_ID = "testDataSet";
     private MockWebServer mockWebServer;
+    private AndroidUtilFactory utilFactory;
+
+    private class Listener implements FHSyncListener {
+
+        @Override
+        public void onSyncStarted(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onSyncCompleted(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onUpdateOffline(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onCollisionDetected(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onRemoteUpdateFailed(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onRemoteUpdateApplied(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onLocalUpdateApplied(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onDeltaReceived(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onSyncFailed(NotificationMessage message) {
+
+        }
+
+        @Override
+        public void onClientStorageFailed(NotificationMessage message) {
+
+        }
+    }
 
     @Before
     public void setUp() throws Exception {
         mockWebServer = new MockWebServer();
         mockWebServer.start(9100);
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        Sync.init(getContext(), null);
+        utilFactory = new AndroidUtilFactory(getContext());
+        utilFactory.getLogger().setLogLevel(LOG_LEVEL_VERBOSE);
     }
 
     @After
@@ -65,14 +119,12 @@ public class FHSyncDatasetTest {
 
         mockWebServer.enqueue(new MockResponse().setBody("{}"));
 
-        FHSyncListener listener = Mockito.mock(FHSyncListener.class);
+        FHSyncListener listener = Mockito.mock(Listener.class);
 
-        FHSyncConfig config = new FHSyncConfig();
-        config.setNotifySyncComplete(true);
-        config.setSyncFrequency(1);
+        FHSyncConfig config = (new FHSyncConfig.Builder()).notifySyncComplete(true).syncFrequencySeconds(1).build();
 
-        FHSyncClient client = new FHSyncClient();
-        client.init(getContext(), config, listener);
+        FHSyncClient client = new FHSyncClient(config, utilFactory);;
+
         client.manage(DATASET_ID, null, new JSONObject());
         Map<String, FHSyncDataset> datasets = (Map<String, FHSyncDataset>) FHTestUtils.getPrivateField(client, "mDataSets");
         FHSyncDataset dataset = datasets.get(DATASET_ID);
@@ -105,7 +157,7 @@ public class FHSyncDatasetTest {
             public void verify(VerificationData data) {
                 List<Invocation> invocations = data.getAllInvocations();
                 InvocationMatcher wanted = data.getWanted();
-                int actualInvocations = new InvocationsFinder().findInvocations(invocations, wanted).size();
+                int actualInvocations = InvocationsFinder.findInvocations(invocations, wanted).size();
 
                 if (actualInvocations < numberOfInvocations) {
                     throw new IllegalStateException("Found " + actualInvocations + " but wanted " + numberOfInvocations);
@@ -113,7 +165,11 @@ public class FHSyncDatasetTest {
 
                 invocationsOut.set(actualInvocations);
 
+            }
 
+            @Override
+            public VerificationMode description(String description) {
+                return this;
             }
         };
     }
@@ -125,7 +181,7 @@ public class FHSyncDatasetTest {
             public void verify(VerificationData data) {
                 List<Invocation> invocations = data.getAllInvocations();
                 InvocationMatcher wanted = data.getWanted();
-                int actualInvocations = new InvocationsFinder().findInvocations(invocations, wanted).size();
+                int actualInvocations = InvocationsFinder.findInvocations(invocations, wanted).size();
 
                 if (actualInvocations != numberOfInvocations) {
                     throw new IllegalStateException("Found " + actualInvocations + " but wanted " + numberOfInvocations);
@@ -133,7 +189,11 @@ public class FHSyncDatasetTest {
 
                 invocationsOut.set(actualInvocations);
 
+            }
 
+            @Override
+            public VerificationMode description(String description) {
+                return this;
             }
         };
     }
