@@ -15,7 +15,8 @@
  */
 package com.feedhenry.sdk.sync;
 
-import org.json.fh.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Configuration options for the sync framework.
@@ -355,25 +356,28 @@ public class FHSyncConfig {
      *
      * @return The JSON object
      */
-    public JSONObject getJSON() {
+    public JSONObject toJSON() {
         JSONObject ret = new JSONObject();
-        ret.put(KEY_SYNC_FREQUENCY, this.mSyncFrequencySeconds);
-        ret.put(KEY_AUTO_SYNC_UPDATES, this.mAutoSyncLocalUpdates);
-        ret.put(KEY_NOTIFY_CLIENT_STORAGE_FAILED, this.mNotifyClientStorageFailed);
-        ret.put(KEY_NOTIFY_DELTA_RECEIVED, this.mNotifyDeltaReceived);
-        ret.put(KEY_NOTIFY_OFFLINE_UPDATED, this.mNotifyOfflineUpdate);
-        ret.put(KEY_NOTIFY_SYNC_COLLISION, this.mNotifySyncCollisions);
-        ret.put(KEY_NOTIFY_SYNC_COMPLETED, this.mNotifySyncComplete);
-        ret.put(KEY_NOTIFY_SYNC_STARTED, this.mNotifySyncStarted);
-        ret.put(KEY_NOTIFY_REMOTE_UPDATED_APPLIED, this.mNotifyRemoteUpdateApplied);
-        ret.put(KEY_NOTIFY_LOCAL_UPDATE_APPLIED, this.mNotifyLocalUpdateApplied);
-        ret.put(KEY_NOTIFY_REMOTE_UPDATED_FAILED, this.mNotifyRemoteUpdateFailed);
-        ret.put(KEY_NOTIFY_SYNC_FAILED, this.mNotifySyncFailed);
-        ret.put(KEY_CRASHCOUNT, this.mCrashCountWait);
-        ret.put(KEY_RESEND_CRASH, this.mResendCrashedUpdates);
+        try {
+            ret.put(KEY_SYNC_FREQUENCY, this.mSyncFrequencySeconds);
+            ret.put(KEY_AUTO_SYNC_UPDATES, this.mAutoSyncLocalUpdates);
+            ret.put(KEY_NOTIFY_CLIENT_STORAGE_FAILED, this.mNotifyClientStorageFailed);
+            ret.put(KEY_NOTIFY_DELTA_RECEIVED, this.mNotifyDeltaReceived);
+            ret.put(KEY_NOTIFY_OFFLINE_UPDATED, this.mNotifyOfflineUpdate);
+            ret.put(KEY_NOTIFY_SYNC_COLLISION, this.mNotifySyncCollisions);
+            ret.put(KEY_NOTIFY_SYNC_COMPLETED, this.mNotifySyncComplete);
+            ret.put(KEY_NOTIFY_SYNC_STARTED, this.mNotifySyncStarted);
+            ret.put(KEY_NOTIFY_REMOTE_UPDATED_APPLIED, this.mNotifyRemoteUpdateApplied);
+            ret.put(KEY_NOTIFY_LOCAL_UPDATE_APPLIED, this.mNotifyLocalUpdateApplied);
+            ret.put(KEY_NOTIFY_REMOTE_UPDATED_FAILED, this.mNotifyRemoteUpdateFailed);
+            ret.put(KEY_NOTIFY_SYNC_FAILED, this.mNotifySyncFailed);
+            ret.put(KEY_CRASHCOUNT, this.mCrashCountWait);
+            ret.put(KEY_RESEND_CRASH, this.mResendCrashedUpdates);
+        } catch (JSONException e) {
+
+        }
         return ret;
     }
-
 
     /**
      * Creates a new configuration object from JSON.
@@ -381,6 +385,8 @@ public class FHSyncConfig {
      * @param pObj the sync config JSON
      *
      * @return the new sync config object
+     *
+     * @deprecated use {@link Builder#fromJSON(JSONObject)}
      */
     @Deprecated
     public static FHSyncConfig fromJSON(JSONObject pObj) {
@@ -404,7 +410,7 @@ public class FHSyncConfig {
 
     @Deprecated
     public FHSyncConfig clone() {
-        JSONObject json = this.getJSON();
+        JSONObject json = this.toJSON();
         return FHSyncConfig.fromJSON(json);
     }
 
@@ -591,20 +597,22 @@ public class FHSyncConfig {
          * @param pObj the sync config JSON
          */
         public Builder fromJSON(JSONObject pObj) {
-            mInstance.mSyncFrequencySeconds = pObj.optInt(KEY_SYNC_FREQUENCY);
-            mInstance.mAutoSyncLocalUpdates = pObj.optBoolean(KEY_AUTO_SYNC_UPDATES);
-            mInstance.mNotifyClientStorageFailed = pObj.optBoolean(KEY_NOTIFY_CLIENT_STORAGE_FAILED);
-            mInstance.mNotifyDeltaReceived = pObj.optBoolean(KEY_NOTIFY_DELTA_RECEIVED);
-            mInstance.mNotifyOfflineUpdate = pObj.optBoolean(KEY_NOTIFY_OFFLINE_UPDATED);
-            mInstance.mNotifySyncCollisions = pObj.optBoolean(KEY_NOTIFY_SYNC_COLLISION);
-            mInstance.mNotifySyncComplete = pObj.optBoolean(KEY_NOTIFY_SYNC_COMPLETED);
-            mInstance.mNotifySyncStarted = pObj.optBoolean(KEY_NOTIFY_SYNC_STARTED);
-            mInstance.mNotifyRemoteUpdateApplied = pObj.optBoolean(KEY_NOTIFY_REMOTE_UPDATED_APPLIED);
-            mInstance.mNotifyLocalUpdateApplied = pObj.optBoolean(KEY_NOTIFY_LOCAL_UPDATE_APPLIED);
-            mInstance.mNotifyRemoteUpdateFailed = pObj.optBoolean(KEY_NOTIFY_REMOTE_UPDATED_FAILED);
-            mInstance.mNotifySyncFailed = pObj.optBoolean(KEY_NOTIFY_SYNC_FAILED);
-            mInstance.mCrashCountWait = pObj.optInt(KEY_CRASHCOUNT, 10);
-            mInstance.mResendCrashedUpdates = pObj.optBoolean(KEY_RESEND_CRASH);
+            if (pObj != null) {
+                mInstance.mSyncFrequencySeconds = pObj.optInt(KEY_SYNC_FREQUENCY);
+                mInstance.mAutoSyncLocalUpdates = pObj.optBoolean(KEY_AUTO_SYNC_UPDATES);
+                mInstance.mNotifyClientStorageFailed = pObj.optBoolean(KEY_NOTIFY_CLIENT_STORAGE_FAILED);
+                mInstance.mNotifyDeltaReceived = pObj.optBoolean(KEY_NOTIFY_DELTA_RECEIVED);
+                mInstance.mNotifyOfflineUpdate = pObj.optBoolean(KEY_NOTIFY_OFFLINE_UPDATED);
+                mInstance.mNotifySyncCollisions = pObj.optBoolean(KEY_NOTIFY_SYNC_COLLISION);
+                mInstance.mNotifySyncComplete = pObj.optBoolean(KEY_NOTIFY_SYNC_COMPLETED);
+                mInstance.mNotifySyncStarted = pObj.optBoolean(KEY_NOTIFY_SYNC_STARTED);
+                mInstance.mNotifyRemoteUpdateApplied = pObj.optBoolean(KEY_NOTIFY_REMOTE_UPDATED_APPLIED);
+                mInstance.mNotifyLocalUpdateApplied = pObj.optBoolean(KEY_NOTIFY_LOCAL_UPDATE_APPLIED);
+                mInstance.mNotifyRemoteUpdateFailed = pObj.optBoolean(KEY_NOTIFY_REMOTE_UPDATED_FAILED);
+                mInstance.mNotifySyncFailed = pObj.optBoolean(KEY_NOTIFY_SYNC_FAILED);
+                mInstance.mCrashCountWait = pObj.optInt(KEY_CRASHCOUNT, 10);
+                mInstance.mResendCrashedUpdates = pObj.optBoolean(KEY_RESEND_CRASH);
+            }
             return this;
         }
 

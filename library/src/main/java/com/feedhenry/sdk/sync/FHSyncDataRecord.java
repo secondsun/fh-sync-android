@@ -1,12 +1,12 @@
 /**
  * Copyright Red Hat, Inc, and individual contributors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,8 @@
  */
 package com.feedhenry.sdk.sync;
 
-import org.json.fh.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class FHSyncDataRecord {
 
@@ -35,11 +36,11 @@ public class FHSyncDataRecord {
 
     }
 
-    public FHSyncDataRecord(JSONObject pData) {
+    public FHSyncDataRecord(JSONObject pData) throws JSONException {
         setData(pData);
     }
 
-    public FHSyncDataRecord(String pUid, JSONObject pData) {
+    public FHSyncDataRecord(String pUid, JSONObject pData) throws JSONException {
         this.uid = pUid;
         setData(pData);
     }
@@ -56,7 +57,7 @@ public class FHSyncDataRecord {
         return uid;
     }
 
-    public void setData(JSONObject pData) {
+    public void setData(JSONObject pData) throws JSONException {
         data = new JSONObject(pData.toString());
         hashValue = FHSyncUtils.generateObjectHash(data);
     }
@@ -69,7 +70,7 @@ public class FHSyncDataRecord {
         this.hashValue = pHashValue;
     }
 
-    public JSONObject getJSON() {
+    public JSONObject getJSON() throws JSONException {
         JSONObject ret = new JSONObject();
         if (this.uid != null) {
             ret.put(KEY_UID, this.uid);
@@ -84,7 +85,11 @@ public class FHSyncDataRecord {
     }
 
     public String toString() {
-        return this.getJSON().toString();
+        try {
+            return this.getJSON().toString();
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean equals(Object pThat) {
@@ -100,11 +105,16 @@ public class FHSyncDataRecord {
     }
 
     public FHSyncDataRecord clone() {
-        JSONObject jsonObj = this.getJSON();
-        return FHSyncDataRecord.fromJSON(jsonObj);
+        JSONObject jsonObj;
+        try {
+            jsonObj = this.getJSON();
+            return FHSyncDataRecord.fromJSON(jsonObj);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static FHSyncDataRecord fromJSON(JSONObject pObj) {
+    public static FHSyncDataRecord fromJSON(JSONObject pObj) throws JSONException {
         FHSyncDataRecord record = new FHSyncDataRecord();
         if (pObj.has(KEY_UID)) {
             record.setUid(pObj.getString(KEY_UID));

@@ -24,72 +24,72 @@ public interface FHSyncListener {
     /**
      * Invoked when a sync loop start event is emitted
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onSyncStarted(NotificationMessage pMessage);
+    void onSyncStarted(NotificationMessage message);
 
     /**
      * Invoked when a sync loop complete event is emitted
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onSyncCompleted(NotificationMessage pMessage);
+    void onSyncCompleted(NotificationMessage message);
 
     /**
      * Invoked when a offline update event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onUpdateOffline(NotificationMessage pMessage);
+    void onUpdateOffline(NotificationMessage message);
 
     /**
      * Invoked when a collision event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onCollisionDetected(NotificationMessage pMessage);
+    void onCollisionDetected(NotificationMessage message);
 
     /**
      * Invoked when a remote update failed event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onRemoteUpdateFailed(NotificationMessage pMessage);
+    void onRemoteUpdateFailed(NotificationMessage message);
 
     /**
      * Invoked when a remote update event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onRemoteUpdateApplied(NotificationMessage pMessage);
+    void onRemoteUpdateApplied(NotificationMessage message);
 
     /**
      * Invoked when a local update applied event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onLocalUpdateApplied(NotificationMessage pMessage);
+    void onLocalUpdateApplied(NotificationMessage message);
 
     /**
      * Invoked when a delta received event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onDeltaReceived(NotificationMessage pMessage);
+    void onDeltaReceived(NotificationMessage message);
 
     /**
      * Invoked when a sync failed event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onSyncFailed(NotificationMessage pMessage);
+    void onSyncFailed(NotificationMessage message);
 
     /**
      * Invoked when a client storage failed event is emitted.
      *
-     * @param pMessage The message
+     * @param message The message
      */
-    void onClientStorageFailed(NotificationMessage pMessage);
+    void onClientStorageFailed(NotificationMessage message);
 
     /**
      * Created on 30.8.17.
@@ -210,72 +210,72 @@ public interface FHSyncListener {
         public FHSyncListener build() {
             return new FHSyncListener() {
                 @Override
-                public void onSyncStarted(NotificationMessage pMessage) {
+                public void onSyncStarted(NotificationMessage message) {
                     if (onSyncStarted != null) {
-                        onSyncStarted.event(pMessage);
+                        onSyncStarted.event(message);
                     }
                 }
 
                 @Override
-                public void onSyncCompleted(NotificationMessage pMessage) {
+                public void onSyncCompleted(NotificationMessage message) {
                     if (onSyncCompleted != null) {
-                        onSyncCompleted.event(pMessage);
+                        onSyncCompleted.event(message);
                     }
                 }
 
                 @Override
-                public void onUpdateOffline(NotificationMessage pMessage) {
+                public void onUpdateOffline(NotificationMessage message) {
                     if (onUpdateOffline != null) {
-                        onUpdateOffline.event(pMessage);
+                        onUpdateOffline.event(message);
                     }
                 }
 
                 @Override
-                public void onCollisionDetected(NotificationMessage pMessage) {
+                public void onCollisionDetected(NotificationMessage message) {
                     if (onCollisionDetected != null) {
-                        onCollisionDetected.event(pMessage);
+                        onCollisionDetected.event(message);
                     }
                 }
 
                 @Override
-                public void onRemoteUpdateFailed(NotificationMessage pMessage) {
+                public void onRemoteUpdateFailed(NotificationMessage message) {
                     if (onRemoteUpdateFailed != null) {
-                        onRemoteUpdateFailed.event(pMessage);
+                        onRemoteUpdateFailed.event(message);
                     }
                 }
 
                 @Override
-                public void onRemoteUpdateApplied(NotificationMessage pMessage) {
+                public void onRemoteUpdateApplied(NotificationMessage message) {
                     if (onRemoteUpdateApplied != null) {
-                        onRemoteUpdateApplied.event(pMessage);
+                        onRemoteUpdateApplied.event(message);
                     }
                 }
 
                 @Override
-                public void onLocalUpdateApplied(NotificationMessage pMessage) {
+                public void onLocalUpdateApplied(NotificationMessage message) {
                     if (onLocalUpdateApplied != null) {
-                        onLocalUpdateApplied.event(pMessage);
+                        onLocalUpdateApplied.event(message);
                     }
                 }
 
                 @Override
-                public void onDeltaReceived(NotificationMessage pMessage) {
+                public void onDeltaReceived(NotificationMessage message) {
                     if (onDeltaReceived != null) {
-                        onDeltaReceived.event(pMessage);
+                        onDeltaReceived.event(message);
                     }
                 }
 
                 @Override
-                public void onSyncFailed(NotificationMessage pMessage) {
+                public void onSyncFailed(NotificationMessage message) {
                     if (onSyncFailed != null) {
-                        onSyncFailed.event(pMessage);
+                        onSyncFailed.event(message);
                     }
                 }
 
                 @Override
-                public void onClientStorageFailed(NotificationMessage pMessage) {
+                public void onClientStorageFailed(NotificationMessage message) {
                     if (onClientStorageFailed != null) {
-                        onClientStorageFailed.event(pMessage);
+                        onClientStorageFailed.event(message);
                     }
                 }
             };

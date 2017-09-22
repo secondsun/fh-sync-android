@@ -15,8 +15,7 @@
  */
 package com.feedhenry.sdk.network;
 
-import org.json.fh.JSONArray;
-import org.json.fh.JSONObject;
+import org.json.JSONObject;
 
 /**
  * Represents the response data from Sync

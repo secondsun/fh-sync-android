@@ -1,12 +1,12 @@
 /**
  * Copyright Red Hat, Inc, and individual contributors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,26 +16,29 @@
 package com.feedhenry.sdk.sync;
 
 import android.util.Log;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.json.fh.JSONArray;
-import org.json.fh.JSONException;
-import org.json.fh.JSONObject;
 
 public class FHSyncUtils {
 
-    private static final char[] DIGITS = {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-    };
+    public interface Action1<T> {
+
+        void doAction(T obj);
+    }
+
+    private static final char[] DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
     private static final String TAG = "FHSyncUtils";
 
-    public static JSONArray sortObj(JSONArray pObject) {
+    public static JSONArray sortObj(JSONArray pObject) throws JSONException {
         JSONArray results = new JSONArray();
-        
         JSONArray castedObj = (JSONArray) pObject;
         for (int i = 0, length = castedObj.length(); i < length; i++) {
             JSONObject obj = new JSONObject();
@@ -52,9 +55,9 @@ public class FHSyncUtils {
         return results;
     }
 
-    public static JSONArray sortObj(JSONObject pObject) {
+    public static JSONArray sortObj(JSONObject pObject) throws JSONException {
         JSONArray results = new JSONArray();
-        
+
         JSONArray keys = pObject.names();
         List<String> sortedKeys = sortNames(keys);
         for (String sortedKey : sortedKeys) {
@@ -69,11 +72,11 @@ public class FHSyncUtils {
             }
             results.put(obj);
         }
-        
+
         return results;
     }
-     
-    public static String generateObjectHash(JSONArray pObject) {
+
+    public static String generateObjectHash(JSONArray pObject) throws JSONException {
         String hashValue = "";
         JSONArray sorted = sortObj(pObject);
         hashValue = generateHash(sorted.toString());
@@ -81,14 +84,14 @@ public class FHSyncUtils {
         return hashValue;
     }
 
-       public static String generateObjectHash(JSONObject pObject) {
+    public static String generateObjectHash(JSONObject pObject) throws JSONException {
         String hashValue = "";
         JSONArray sorted = sortObj(pObject);
         hashValue = generateHash(sorted.toString());
 
         return hashValue;
     }
-    
+
     public static String generateHash(String pText) {
         try {
             String hashValue;
@@ -117,21 +120,21 @@ public class FHSyncUtils {
         return new String(out);
     }
 
-    private static Object sortObj(Object value) {
+    private static Object sortObj(Object value) throws JSONException {
         if (value instanceof JSONArray) {
-            return sortObj((JSONArray)value);
+            return sortObj((JSONArray) value);
         } else if (value instanceof JSONObject) {
-            return sortObj((JSONObject)value);
+            return sortObj((JSONObject) value);
         } else {
             throw new IllegalArgumentException(String.format("A object %s was snuck into a JSON tree", value.toString()));
         }
     }
-    
+
     private static List<String> sortNames(JSONArray pNames) throws JSONException {
         if (pNames == null) {
             return Collections.emptyList();
         }
-        
+
         int length = pNames.length();
         ArrayList<String> names = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
@@ -141,5 +144,16 @@ public class FHSyncUtils {
         return names;
     }
 
-    
+
+    /**
+     * Executes action only if obj is not null
+     * @param obj object to be tested for null
+     * @param action action where object is passed when not null
+     */
+    public static <T> void notNullDo(T obj, Action1<T> action) {
+        if (obj != null) {
+            action.doAction(obj);
+        }
+    }
+
 }

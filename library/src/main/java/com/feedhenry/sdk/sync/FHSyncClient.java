@@ -19,15 +19,14 @@ import android.app.Activity;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.util.Log;
 import com.feedhenry.sdk.exceptions.DataSetNotFound;
 import com.feedhenry.sdk.exceptions.FHNotReadyException;
 import com.feedhenry.sdk.network.NetworkClient;
 import com.feedhenry.sdk.network.SyncNetworkCallback;
-import com.feedhenry.sdk.storage.Storage;
-import com.feedhenry.sdk.utils.FHLog;
-import org.json.fh.JSONObject;
+import com.feedhenry.sdk.utils.Logger;
+import com.feedhenry.sdk.utils.UtilFactory;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -46,8 +45,7 @@ public class FHSyncClient {
 
     protected static final String LOG_TAG = "FHSyncClient";
 
-    private final Handler mHandler;
-    private Storage storage;
+    private Handler mHandler;
     private NetworkClient networkClient;
 
     private Map<String, FHSyncDataset> mDataSets = new HashMap<String, FHSyncDataset>();
@@ -58,11 +56,17 @@ public class FHSyncClient {
 
     private boolean mInitialised = false;
     private MonitorTask mMonitorTask = null;
+    private UtilFactory utilFactory;
+    private Logger log;
+    private HandlerThread fhSyncClientThread;
+    private HandlerThread monitorThread;
 
     /**
      * Gets the singleton instance of the sync client.
      *
      * @return the sync client instance
+     *
+     * @deprecated
      */
     public static FHSyncClient getInstance() {
         if (null == mInstance) {
@@ -75,10 +79,18 @@ public class FHSyncClient {
      * Creates synchronization client.
      */
     public FHSyncClient() {
-        HandlerThread thread = new HandlerThread("FHSyncClient");
-        thread.start();
 
-        mHandler = new Handler(thread.getLooper());
+    }
+
+    /**
+     * Initializes the sync client and starts sync threads. Should be called every time an app/activity
+     * starts.
+     *
+     * @param config      The sync configuration
+     * @param utilFactory Utility class factory (it provides storage, network access, etc.)
+     */
+    public void init(FHSyncConfig config, UtilFactory utilFactory) {
+        init(config, utilFactory, true);
     }
 
     /**
@@ -86,21 +98,28 @@ public class FHSyncClient {
      * starts.
      *
      * @param config        The sync configuration
-     * @param storage   Filesystem access object for storing the datasets
-     * @param networkClient Network access object
+     * @param utilFactory   Utility class factory (it provides storage, network access, etc.)
+     * @param createThreads Creates background sync threads automatically
      */
-    public void init(FHSyncConfig config, @NonNull Storage storage, @NonNull NetworkClient networkClient) {
+    public void init(FHSyncConfig config, UtilFactory utilFactory, boolean createThreads) {
         mConfig = config;
-        this.storage = storage;
-        this.networkClient = networkClient;
+        this.utilFactory = utilFactory;
+        this.networkClient = utilFactory.getNetworkClient();
+        this.log = utilFactory.getLogger();
+
         initHandlers();
         mInitialised = true;
-        if (null == mMonitorTask) {
-            HandlerThread thread = new HandlerThread("monitor task");
-            thread.start();
-            Handler handler = new Handler(thread.getLooper());
-            mMonitorTask = new MonitorTask();
-            handler.post(mMonitorTask);
+        if (createThreads) {
+            fhSyncClientThread = new HandlerThread("FHSyncClient");
+            fhSyncClientThread.start();
+            mHandler = new Handler(fhSyncClientThread.getLooper());
+            if (null == mMonitorTask) {
+                monitorThread = new HandlerThread("monitor task");
+                monitorThread.start();
+                Handler handler = new Handler(monitorThread.getLooper());
+                mMonitorTask = new MonitorTask();
+                handler.post(mMonitorTask);
+            }
         }
     }
 
@@ -166,7 +185,7 @@ public class FHSyncClient {
         if (null != dataset) {
             dataset.setNotificationHandler(mNotificationHandler);
         } else {
-            dataset = new FHSyncDataset(storage, networkClient, mNotificationHandler, pDataId, syncConfig, pQueryParams, pMetaData);
+            dataset = new FHSyncDataset(mNotificationHandler, pDataId, syncConfig, pQueryParams, pMetaData, utilFactory);
             mDataSets.put(pDataId, dataset);
             dataset.setSyncRunning(false);
             dataset.setInitialised(true);
@@ -174,8 +193,11 @@ public class FHSyncClient {
 
         dataset.setSyncConfig(syncConfig);
         dataset.setSyncPending(true);
-
-        dataset.writeToStorage();
+        try {
+            dataset.writeToStorage();
+        } catch (JSONException e) {
+            log.e(LOG_TAG, "Dataset JSON storage failed.", e);
+        }
     }
 
     /**
@@ -297,8 +319,12 @@ public class FHSyncClient {
      */
     public void listCollisions(String pDataId, SyncNetworkCallback pCallback) throws FHNotReadyException {
         JSONObject params = new JSONObject();
-        params.put("fn", "listCollisions");
-        networkClient.performRequest(pDataId, params, pCallback);
+        try {
+            params.put("fn", "listCollisions");
+            networkClient.performRequest(pDataId, params, pCallback);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -312,9 +338,13 @@ public class FHSyncClient {
      */
     public void removeCollision(String pDataId, String pCollisionHash, SyncNetworkCallback pCallback) throws FHNotReadyException {
         JSONObject params = new JSONObject();
-        params.put("fn", "removeCollision");
-        params.put("hash", pCollisionHash);
-        networkClient.performRequest(pDataId, params, pCallback);
+        try {
+            params.put("fn", "removeCollision");
+            params.put("hash", pCollisionHash);
+            networkClient.performRequest(pDataId, params, pCallback);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -331,10 +361,19 @@ public class FHSyncClient {
             this.mSyncListener = listener;
         }
 
-        for (FHSyncDataset dataSet : mDataSets.values()) {
-            dataSet.stopSync(false);
-        }
+        stopSync(false);
 
+    }
+
+    /**
+     * This starts/stops sync progress on all datasets.
+     *
+     * @param shouldStopSync true=stop, false=start
+     */
+    public void stopSync(boolean shouldStopSync) {
+        for (FHSyncDataset dataSet : mDataSets.values()) {
+            dataSet.stopSync(shouldStopSync);
+        }
     }
 
     /**
@@ -343,9 +382,7 @@ public class FHSyncClient {
      */
     public void pauseSync() {
 
-        for (FHSyncDataset dataSet : mDataSets.values()) {
-            dataSet.stopSync(true);
-        }
+        stopSync(true);
 
         this.mSyncListener = null;
     }
@@ -370,6 +407,9 @@ public class FHSyncClient {
             if (null != mMonitorTask) {
                 mMonitorTask.stopRunning();
             }
+            if (fhSyncClientThread != null) {
+                fhSyncClientThread.quit();
+            }
             for (String key : mDataSets.keySet()) {
                 stop(key);
             }
@@ -386,7 +426,8 @@ public class FHSyncClient {
 
         public void stopRunning() {
             mKeepRunning = false;
-            Thread.currentThread().interrupt();
+            log.d(LOG_TAG, "interrupting MonitorTask");
+            monitorThread.quit();
         }
 
         private void checkDatasets() {
@@ -403,18 +444,13 @@ public class FHSyncClient {
                         } else if (null != lastSyncEnd) {
                             long interval = new Date().getTime() - lastSyncEnd.getTime();
                             if (interval > dataset.getSyncConfig().getSyncFrequency() * 1000) {
-                                Log.d(LOG_TAG, dataset.getDatasetId() + " Should start sync!!");
+                                log.d(LOG_TAG, dataset.getDatasetId() + " Should start sync!!");
                                 dataset.setSyncPending(true);
                             }
                         }
 
                         if (dataset.isSyncPending()) {
-                            mHandler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dataset.startSyncLoop();
-                                }
-                            });
+                            mHandler.post(dataset::startSyncLoop);
                         }
                     }
                 }
@@ -428,7 +464,7 @@ public class FHSyncClient {
                 try {
                     Thread.sleep(1000);
                 } catch (Exception e) {
-                    FHLog.e(LOG_TAG, "MonitorTask thread is interrupted", e);
+                    log.e(LOG_TAG, "MonitorTask thread is interrupted", e);
                     Thread.currentThread().interrupt();
                 }
             }
