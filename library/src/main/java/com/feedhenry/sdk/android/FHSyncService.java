@@ -176,7 +176,6 @@ public class FHSyncService extends IntentService {
     public void onCreate() {
         super.onCreate();
         log = getUtilFactory().getLogger();
-        syncClient = new FHSyncClient();
         storage = getUtilFactory().getStorage();
         networkClient = getUtilFactory().getNetworkClient();
         networkClient.registerNetworkListener();
@@ -188,8 +187,9 @@ public class FHSyncService extends IntentService {
         } catch (IOException e) {
             log.e(SERVICE_NAME, "Unable to open config.", e);
         }
+        syncClient = new FHSyncClient(syncConfig, getUtilFactory());
         syncClient.setListener(syncListener);
-        syncClient.init(syncConfig, getUtilFactory());
+
         for (Map.Entry<String, ManagedDatasetConfig> entry : managedDatasets.entrySet()) {
             String dataId = entry.getKey();
             ManagedDatasetConfig managedDatasetConfig = entry.getValue();

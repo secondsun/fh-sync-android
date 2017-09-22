@@ -58,50 +58,17 @@ public class FHSyncClient {
     private MonitorTask mMonitorTask = null;
     private UtilFactory utilFactory;
     private Logger log;
-    private HandlerThread fhSyncClientThread;
+    private HandlerThread syncClientThread;
     private HandlerThread monitorThread;
 
     /**
-     * Gets the singleton instance of the sync client.
-     *
-     * @return the sync client instance
-     *
-     * @deprecated
-     */
-    public static FHSyncClient getInstance() {
-        if (null == mInstance) {
-            mInstance = new FHSyncClient();
-        }
-        return mInstance;
-    }
-
-    /**
-     * Creates synchronization client.
-     */
-    public FHSyncClient() {
-
-    }
-
-    /**
-     * Initializes the sync client and starts sync threads. Should be called every time an app/activity
+     * Creates and initializes the sync client and starts sync threads.
      * starts.
      *
      * @param config      The sync configuration
      * @param utilFactory Utility class factory (it provides storage, network access, etc.)
      */
-    public void init(FHSyncConfig config, UtilFactory utilFactory) {
-        init(config, utilFactory, true);
-    }
-
-    /**
-     * Initializes the sync client. Should be called every time an app/activity
-     * starts.
-     *
-     * @param config        The sync configuration
-     * @param utilFactory   Utility class factory (it provides storage, network access, etc.)
-     * @param createThreads Creates background sync threads automatically
-     */
-    public void init(FHSyncConfig config, UtilFactory utilFactory, boolean createThreads) {
+    public FHSyncClient(FHSyncConfig config, UtilFactory utilFactory) {
         mConfig = config;
         this.utilFactory = utilFactory;
         this.networkClient = utilFactory.getNetworkClient();
@@ -109,17 +76,16 @@ public class FHSyncClient {
 
         initHandlers();
         mInitialised = true;
-        if (createThreads) {
-            fhSyncClientThread = new HandlerThread("FHSyncClient");
-            fhSyncClientThread.start();
-            mHandler = new Handler(fhSyncClientThread.getLooper());
-            if (null == mMonitorTask) {
-                monitorThread = new HandlerThread("monitor task");
-                monitorThread.start();
-                Handler handler = new Handler(monitorThread.getLooper());
-                mMonitorTask = new MonitorTask();
-                handler.post(mMonitorTask);
-            }
+
+        syncClientThread = new HandlerThread("FHSyncClient");
+        syncClientThread.start();
+        mHandler = new Handler(syncClientThread.getLooper());
+        if (null == mMonitorTask) {
+            monitorThread = new HandlerThread("FHSyncClient_monitor");
+            monitorThread.start();
+            Handler handler = new Handler(monitorThread.getLooper());
+            mMonitorTask = new MonitorTask();
+            handler.post(mMonitorTask);
         }
     }
 
@@ -407,8 +373,8 @@ public class FHSyncClient {
             if (null != mMonitorTask) {
                 mMonitorTask.stopRunning();
             }
-            if (fhSyncClientThread != null) {
-                fhSyncClientThread.quit();
+            if (syncClientThread != null) {
+                syncClientThread.quit();
             }
             for (String key : mDataSets.keySet()) {
                 stop(key);
