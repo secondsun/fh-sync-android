@@ -1,12 +1,12 @@
 /**
  * Copyright Red Hat, Inc, and individual contributors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,38 +21,41 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import com.feedhenry.sdk.android.utils.FHLog;
 import com.feedhenry.sdk.exceptions.InvalidUrlException;
 import com.feedhenry.sdk.network.NetworkClient;
 import com.feedhenry.sdk.network.SyncNetworkCallback;
 import com.feedhenry.sdk.network.SyncNetworkResponse;
-import com.feedhenry.sdk.utils.FHLog;
-import com.squareup.okhttp.OkHttpClient;
-import okhttp3.Headers;
-import okhttp3.HttpUrl;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.json.fh.JSONObject;
+import com.feedhenry.sdk.utils.ClientIdGenerator;
+import com.feedhenry.sdk.utils.Logger;
+import okhttp3.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
-import static com.feedhenry.sdk.Sync.JSON;
-
 public class NetworkClientImpl implements NetworkClient {
+
+    private static final String FH_CUID = "cuid";
+    private static final String __FH = "__fh";
+    private final ClientIdGenerator clientIdGenerator;
     private Context mContext;
     private boolean mIsOnline;
     private boolean mIsListenerRegistered;
     private NetworkReceiver mReceiver;
-
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String LOG_TAG = "com.feedhenry.sdk.android.NetworkManager";
     private String cloudURL;
     private Headers headers;
-    private okhttp3.OkHttpClient client;
+    private static okhttp3.OkHttpClient client;
+    private Logger log = FHLog.getInstance();
 
-    public NetworkClientImpl(Context pContext,String cloudURL) {
+    public NetworkClientImpl(Context pContext, ClientIdGenerator clientIdGenerator) {
         this.mContext = pContext;
-        client = new okhttp3.OkHttpClient.Builder().build();
-        this.cloudURL=cloudURL;
+        if (client == null) {
+            client = new okhttp3.OkHttpClient.Builder().build();
+        }
+        this.clientIdGenerator = clientIdGenerator;
     }
 
     public void registerNetworkListener() {
@@ -70,7 +73,7 @@ public class NetworkClientImpl implements NetworkClient {
             try {
                 mContext.unregisterReceiver(mReceiver);
             } catch (Exception e) {
-                FHLog.w(LOG_TAG, "Failed to unregister receiver");
+                log.w(LOG_TAG, "Failed to unregister receiver");
             }
             mIsListenerRegistered = false;
         }
@@ -82,38 +85,54 @@ public class NetworkClientImpl implements NetworkClient {
         mIsOnline = networkInfo != null && networkInfo.isConnected();
         if (mIsOnline) {
             String type = networkInfo.getTypeName();
-            FHLog.i(LOG_TAG, "Device is online. Connection type : " + type);
+            log.i(LOG_TAG, "Device is online. Connection type : " + type);
         } else {
-            FHLog.i(LOG_TAG, "Device is offline.");
+            log.i(LOG_TAG, "Device is offline.");
         }
     }
 
     @Override
     public void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback) {
-        // TODO change params to json string.
-        RequestBody body = RequestBody.create(JSON, params.toString());
-        HttpUrl url = HttpUrl.parse(cloudURL);
-        if (url != null) {
-            url = url.newBuilder().addPathSegment(datasetName).build();
-            Request.Builder builder = new Request.Builder();
-            builder.url(url);
-            if (headers != null) {
-                builder.headers(headers);
-            }
-            Request request = builder.post(body).build();
 
-            // TODO check if online/offline
-            // TODO perform async request
-            try {
-                Response response = client.newCall(request).execute();
-                String result = response.body().string();
-                SyncNetworkResponse syncNetworkResponse = new SyncNetworkResponse(new JSONObject(result));
-                pCallback.success(syncNetworkResponse);
-            } catch (IOException e) {
-                pCallback.fail(new SyncNetworkResponse(e, "Request failed"));
+        try {
+            params.put(__FH, new JSONObject().put(FH_CUID, clientIdGenerator.getClientId())); //adds client unique id
+
+            RequestBody body = RequestBody.create(JSON, params.toString());
+            if (cloudURL == null) {
+                throw new IllegalStateException("Forgot to set cloud url!");
             }
-        } else {
-            pCallback.fail(new SyncNetworkResponse(new InvalidUrlException(cloudURL), "Invalid cloud app URL"));
+            HttpUrl url = HttpUrl.parse(cloudURL);
+            if (url != null) {
+                url = url.newBuilder().addPathSegment(datasetName).build();
+                Request.Builder builder = new Request.Builder();
+                builder.url(url);
+                if (headers != null) {
+                    builder.headers(headers);
+                }
+                Request request = builder.post(body).build();
+
+                // TODO check if online/offline
+                // TODO perform async request
+                try {
+                    Response response = client.newCall(request).execute();
+                    ResponseBody responseBody = response.body();
+                    if (responseBody != null) {
+                        String result = responseBody.string();
+
+                        SyncNetworkResponse syncNetworkResponse = new SyncNetworkResponse(new JSONObject(result));
+                        pCallback.success(syncNetworkResponse);
+
+                    } else {
+                        pCallback.fail(new SyncNetworkResponse(null, "Null response."));
+                    }
+                } catch (IOException e) {
+                    pCallback.fail(new SyncNetworkResponse(e, "Request failed"));
+                }
+            } else {
+                pCallback.fail(new SyncNetworkResponse(new InvalidUrlException(cloudURL), "Invalid cloud app URL"));
+            }
+        } catch (JSONException e) {
+            pCallback.fail(new SyncNetworkResponse(e, "JSON parsing failed."));
         }
     }
 
@@ -130,7 +149,13 @@ public class NetworkClientImpl implements NetworkClient {
         headers = requestHeaders;
     }
 
+    @Override
+    public void setCloudURL(String cloudURL) {
+        this.cloudURL = cloudURL;
+    }
+
     private class NetworkReceiver extends BroadcastReceiver {
+
         @Override
         public void onReceive(Context context, Intent intent) {
             checkNetworkStatus();

@@ -15,18 +15,19 @@
  */
 package com.feedhenry.sdk.network;
 
-import org.json.fh.JSONObject;
+import org.json.JSONObject;
 
 /**
- *  Network client interface that is used to perform HTTP requests with given sync dataset.
+ * Network client interface that is used to perform HTTP requests with given sync dataset.
  */
 public interface NetworkClient {
 
     /**
      * Performs HTTP post request against sync cloud app.
-     * @param datasetName  sync dataset name
-     * @param params JSON params passed to the call.
-     * @param pCallback response callback
+     *
+     * @param datasetName sync dataset name
+     * @param params      JSON params passed to the call.
+     * @param pCallback   response callback
      */
     void performRequest(String datasetName, JSONObject params, SyncNetworkCallback pCallback);
 
@@ -34,6 +35,13 @@ public interface NetworkClient {
      * @return Returns true if client is currently connected to network.
      */
     boolean isOnline();
+
+    /**
+     * Sets URL endpoint for the client
+     *
+     * @param cloudURL url
+     */
+    void setCloudURL(String cloudURL);
 
     /**
      * Registers network client for checking if online status changes.
@@ -44,4 +52,5 @@ public interface NetworkClient {
      * Registers network client for checking if online status changes.
      */
     void unregisterNetworkListener();
+
 }
