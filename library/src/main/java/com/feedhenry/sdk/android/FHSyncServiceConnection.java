@@ -18,21 +18,50 @@ package com.feedhenry.sdk.android;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import com.feedhenry.sdk.sync.FHSyncUtils;
 
 /**
  * Created on 9/20/17.
  */
 public abstract class FHSyncServiceConnection implements ServiceConnection {
 
+    private FHSyncService service;
+
     /**
      * Called when client is bound to service.
      *
      * @param service service
      */
-    public abstract void onServiceConnected(FHSyncService service);
+    public void onServiceConnected(FHSyncService service) {
+        this.service = service;
+    }
 
     public void onServiceDisconnected() {
+        this.service = null;
+    }
 
+    /**
+     * Is it connected to the service?
+     * @return true=service is connected, false=service is not connected or failed
+     */
+    public final boolean isConnected() {
+        return this.service!=null;
+    }
+
+    /**
+     * Calls action on service.
+     *
+     * @param action action to be called
+     *
+     * @return true=action was called, false=service is not connected or failed
+     */
+    public boolean call(FHSyncUtils.Action1<FHSyncService> action) {
+        if (service != null) {
+            action.doAction(service);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -47,6 +76,6 @@ public abstract class FHSyncServiceConnection implements ServiceConnection {
 
     @Override
     public final void onBindingDied(ComponentName name) {
-
+        this.service = null;
     }
 }

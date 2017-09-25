@@ -16,7 +16,9 @@
 package com.feedhenry.sdk.android;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -169,6 +171,26 @@ public class FHSyncService extends IntentService {
     }
 
     /**
+     * Binds to the service.
+     *
+     * @param ctx         current context (usually activity context)
+     * @param onConnected calls to be performed immediately after successful connection
+     *
+     * @return connection to service, don't forget to call {@link Context#unbindService(ServiceConnection)} in your {@link android.app.Activity#onDestroy()}
+     */
+    public static FHSyncServiceConnection bindService(Context ctx, FHSyncUtils.Action1<FHSyncService> onConnected) {
+        FHSyncServiceConnection syncServiceConnection = new FHSyncServiceConnection() {
+            @Override
+            public void onServiceConnected(FHSyncService service) {
+                super.onServiceConnected(service);
+                onConnected.doAction(service);
+            }
+        };
+        ctx.bindService(new Intent(ctx, FHSyncService.class), syncServiceConnection, BIND_AUTO_CREATE);
+        return syncServiceConnection;
+    }
+
+    /**
      * Returns singleton of {@link UtilFactory}. You can override it in your own descendant service to provide your own implementations.
      *
      * @return factory singleton
@@ -290,6 +312,7 @@ public class FHSyncService extends IntentService {
 
     /**
      * Sets sync config.
+     *
      * @param config config
      */
     public void setConfig(FHSyncConfig config) {
@@ -304,6 +327,7 @@ public class FHSyncService extends IntentService {
 
     /**
      * Sets URL endpoint of sync server.
+     *
      * @param url sync server URL
      */
     public void setCloudUrl(String url) {
@@ -316,7 +340,7 @@ public class FHSyncService extends IntentService {
      *
      * @param dataId      The id of the dataset.
      * @param config      The sync configuration for the dataset. If not specified,
-     *                     the sync configuration passed in the initDev method will be used
+     *                    the sync configuration passed in the initDev method will be used
      * @param queryParams Query parameters for the dataset
      *
      * @throws IllegalStateException thrown if FHSyncClient isn't initialised.
@@ -330,7 +354,7 @@ public class FHSyncService extends IntentService {
      *
      * @param dataId      The id of the dataset.
      * @param config      The sync configuration for the dataset. If not specified,
-     *                     the sync configuration passed in the initDev method will be used
+     *                    the sync configuration passed in the initDev method will be used
      * @param queryParams Query parameters for the dataset
      * @param metadata    Meta for the dataset
      *
