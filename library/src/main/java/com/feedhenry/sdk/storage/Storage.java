@@ -34,11 +34,11 @@ public interface Storage {
     byte[] getContent(@NonNull String contentId) throws IOException;
 
     /**
-     * Opens file for writing
+     * Writes content to a file
      *
      * @param contentId relative path to file
+     * @param content content to write
      *
-     * @return output stream
      */
     void putContent(@NonNull String contentId, @NonNull byte[] content) throws IOException;
 }
