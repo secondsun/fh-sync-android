@@ -28,11 +28,17 @@ import com.feedhenry.sdk.network.SyncNetworkCallback;
 import com.feedhenry.sdk.network.SyncNetworkResponse;
 import com.feedhenry.sdk.utils.ClientIdGenerator;
 import com.feedhenry.sdk.utils.Logger;
+import com.mklimek.sslutilsandroid.SslUtils;
+
 import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 
 public class NetworkClientImpl implements NetworkClient {
 
@@ -47,13 +53,22 @@ public class NetworkClientImpl implements NetworkClient {
     private static final String LOG_TAG = "com.feedhenry.sdk.android.NetworkManager";
     private String cloudURL;
     private Headers headers;
-    private static okhttp3.OkHttpClient client;
+    public static okhttp3.OkHttpClient client;
     private Logger log = FHLog.getInstance();
 
     public NetworkClientImpl(Context context, ClientIdGenerator clientIdGenerator) {
         this.context = context;
         if (client == null) {
-            client = new okhttp3.OkHttpClient.Builder().build();
+
+            SSLContext sslContext = SslUtils.getSslContextForCertificateFile(context, "mcp");
+            client = new OkHttpClient.Builder().hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            }).sslSocketFactory(sslContext.getSocketFactory()).build();
+
+            //client = new okhttp3.OkHttpClient.Builder().build();
         }
         this.clientIdGenerator = clientIdGenerator;
     }
